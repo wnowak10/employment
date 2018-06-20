@@ -18,8 +18,6 @@
 
 <body>
 
-<!-- <h1> hi!</h1> -->
-
 </body>
 
 <script type="text/javascript">
@@ -30,25 +28,16 @@ var grid = d3.select("body")
   .attr("id", "grid")
   .attr("class", "grid");
 
-
-
-
 var div = d3.select("body").append("div") 
     .attr("class", "tooltip")       
     .style("opacity", 0);
     
-//////////////////////////////////////////
-//////////////////////////////////////////
-// Set the title.
-//////////////////////////////////////////
-//////////////////////////////////////////
-var title_div = grid
-    .append("div")
-    .attr("class", "row_divs");
-
-title_div.append("h1")
+  grid
+  .append("div")
+  .attr("class", "row_divs")
+  .append("h1")
   .attr("id", "title_text")
-    .text("The unemployment rate has recovered nicely since the financial crisis.");
+  .text("The unemployment rate has recovered nicely since the financial crisis.");
 
 
 // set the dimensions and margins of the graph
@@ -65,14 +54,10 @@ var y = d3.scaleLinear().range([height, 0]);
 
 // define the line
 var valueline = d3.line()
-	// .interpolate("cardinal")
     .x(function(d) { return x(d.date); })
     .y(function(d) { return y(d.unrate); });
-    // .curve(d3.curveLinear);
 
-// append the svg obgect to the body of the page
-// appends a 'group' element to 'svg'
-// moves the 'group' element to the top left margin
+
 var svg = grid.append("div").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
@@ -81,16 +66,13 @@ var svg = grid.append("div").append("svg")
           "translate(" + margin.left + "," + margin.top + ")");
 
 // Get the data
-// var data;
 d3.csv("data.csv", function(error, data) {
   if (error) throw error;
 
   // format the data
   data.forEach(function(d) {
       d.date = parseTime(d.DATE);
-      // console.log(d.date)
       d.unrate = +d.UNRATE;
-      // console.log(d.unrate)
   });
 
   // Scale the range of the data
@@ -98,11 +80,7 @@ d3.csv("data.csv", function(error, data) {
   console.log(d3.extent(data, function(d) { return d.date; }));
   y.domain([0, d3.max(data, function(d) { return d.unrate; })]);
 
-
-
-
-
-path =  svg.append("path")
+  path =  svg.append("path")
       .datum(data)
       .attr("fill", "none")
       .attr("id", "emp_line")
@@ -114,21 +92,16 @@ path =  svg.append("path")
 
       console.log(path)
 
-totalLength = path.node().getTotalLength();
+  totalLength = path.node().getTotalLength();
 
-    path
+  path
       .attr("stroke-dasharray", totalLength + " " + totalLength)
       .attr("stroke-dashoffset", totalLength)
       .transition()
-        .duration(2500)
-        // .ease("linear")
-        .attr("stroke-dashoffset", 0);
+      .duration(2500)
+      .attr("stroke-dashoffset", 0);
 
-
-
-});
-
-    // Add the X Axis
+      // Add the X Axis
   svg.append("g")
       .attr("transform", "translate(0," + height + ")")
       .call(d3.axisBottom(x).ticks(5).tickFormat(d3.timeFormat("%Y")));
@@ -136,8 +109,10 @@ totalLength = path.node().getTotalLength();
   // Add the Y Axis
   svg.append("g")
       .call(d3.axisLeft(y));
-      // .ticks(20);
-        // .tickFormat(d3.format(".0s")));;
+
+});
+
+  
 
 
 
