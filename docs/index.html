@@ -70,13 +70,16 @@ var svg = grid.append("div").append("svg")
           "translate(" + margin.left + "," + margin.top + ")");
 
 
-      // Add the X Axis
-  var xAxis = svg.append("g")
-      .attr("transform", "translate(0," + height + ")")
-      .attr('id','xaxis')
-      .call(d3.axisBottom(x).ticks(5).tickFormat(d3.timeFormat("%Y")));
 
 
+y.domain([0,10]);
+
+
+// Add the Y Axis
+  var yAxis = svg.append("g")
+    .attr('id', 'yaxis')
+      .call(d3.axisLeft(y));
+  
   
 
 // Get the data
@@ -93,14 +96,11 @@ d3.csv("data.csv", function(error, data) {
   // Scale the range of the data
   x.domain(d3.extent(data, function(d) { return d.date; }));
   // y.domain([0, d3.max(data, function(d) { return d.unrate; })]);
-y.domain([0,10]);
-
-
-// Add the Y Axis
-  var yAxis = svg.append("g")
-    .attr('id', 'yaxis')
-      .call(d3.axisLeft(y));
-  
+      // Add the X Axis
+  var xAxis = svg.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .attr('id','xaxis')
+      .call(d3.axisBottom(x).ticks(5).tickFormat(d3.timeFormat("%Y")));
 
   //     // Add the X Axis
   // var xAxis = svg.append("g")
@@ -198,9 +198,9 @@ d3.select('body').call(d3.keybinding()
       // .attr("d", valueline);
 
         // Add the Y Axis
-        d3.select("#yaxis").remove();
-  svg.append("g")
-      .call(d3.axisLeft(y));
+  //       d3.select("#yaxis").remove();
+  // svg.append("g")
+  //     .call(d3.axisLeft(y));
 
 
       console.log('pressed?')
