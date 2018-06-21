@@ -1,0 +1,306 @@
+<style type="text/css">
+
+/*
+Overlays
+*/
+
+.modal {
+  position: fixed;
+  /*width: 500px;*/
+  /*height: 200px;*/
+  top: 50%;
+  left: 50%;
+  /*margin-top: -100px;  Negative half of height. */
+  /*margin-left: -250px;  Negative half of width. */
+  text-align: center;
+  /*background-color: rgba(250,218,94,1);*/
+  color: black;
+  border-radius: 5px;
+  text-align: center;
+  z-index: 11; /* 1px higher than the overlay layer */
+  word-wrap: break-word;
+  font-family: "Source Sans Pro", Helvetica, sans-serif;
+  font-size: 72px;
+}
+
+/*
+Overall page layout
+*/
+
+.grid {
+   /* Use CSS grid to maake layout into 100x100 grid. */
+   display: grid;
+   grid-gap: 0px;
+   width: 100vw;
+   height: 100vh;
+   grid-template-rows: repeat(100, 1fr);
+   grid-template-columns: repeat(100, 1fr);
+}
+
+/* Center row divs (eg for title, controls, map...)*/
+.row_divs {
+  /* Create flexbox to git row_div content into CSS grid row as needed*/
+  display: flex;
+  /* Content runs left to right*/
+  flex-direction: row;  
+  /* Conent centered left to right*/
+  justify-content: center; 
+  /* Content centered top to bottom*/
+  align-items: center;
+
+  /* Run entire width of screen*/
+  grid-column-start: 1;
+  grid-column-end: -1;
+}
+
+/* Size of divs for controls for map*/
+.control_div {
+  height: 100px;
+}
+
+.control_label_div {
+  line-height: 100px; 
+  float: left;
+  height: 100px;
+  /* Top, right, bottom, left*/
+  margin: 0px 50px 0px 0px;
+    display: inline-block;
+}
+
+/*
+Section by section formatting
+*/
+
+/*
+Title
+*/
+#title_text {
+  font-family: "Source Sans Pro", Helvetica, sans-serif;
+  font-size: 42px;
+  text-transform: uppercase;
+  color: darkblue;
+}
+
+#subtitle_text {
+  font-family: "Source Sans Pro", Helvetica, sans-serif;
+  font-size: 42px;
+  text-transform: uppercase;
+  color: darkred;
+}
+
+/*
+Time slider
+*/
+
+  /* Slider itself*/
+  #slider_itself {
+    display: inline-block;
+    float: left;
+    width: 350px;
+    height: 100px;
+    display:inline-block;
+  }
+
+  /* Play button*/
+
+  /* Align button in center of a div*/
+  #playButton_div {
+    display: inline-block;
+    line-height: 100px;
+  }
+
+  /* Color button etc. */
+  #pb {
+  background: #f08080;
+  padding-right: 26px;
+  border-radius: 3px;
+  border: none;
+  color: white;
+  margin: 0;
+  padding: 0 12px;
+  width: 60px;
+  cursor: pointer;
+  height: 30px;
+  }
+
+#pb:hover {
+  background-color: darkblue;
+}    
+
+
+/*
+Radio buttons
+*/
+
+#radio-buttons {
+  display: flex;
+}
+
+#button-label {
+  display: flex;
+  height: 100px;
+  line-height: 100px;
+}
+
+#button-input {
+  display: flex;
+  height: 100px;
+  line-height: 100px;
+}
+
+input[type="radio"]{
+  /* Top, right, bottom, left*/
+  margin: 0 25px 0 5px;
+}
+
+
+/*
+Interactvity
+*/
+
+
+
+div.tooltip { 
+    position: absolute;     
+    text-align: center;     
+    width: 100px;          
+    min-height: 50px;         
+    max-height: 300px;         
+    padding: 2px;       
+    font: 12px sans-serif;    
+    background: red; 
+    color: black;
+    border: 0px;    
+    border-radius: 8px;     
+    pointer-events: none;     
+}
+
+
+
+
+
+/* Map */
+
+
+.container {
+  float: left;
+}
+.counties {
+  fill: none;
+}
+.states {
+  fill: none;
+  stroke: #fff;
+  stroke-linejoin: round;
+}
+.background {
+  fill: white;
+  stroke: white;
+  stroke-linejoin: round;
+}
+
+.legend {
+  font-size: 12px;
+}
+
+#dd_label_text_div {
+  height: 100px;
+  background-color: powderblue;
+}
+
+
+
+
+body {
+  font-family:"avenir next", Arial, sans-serif;
+  font-size: 12px;
+  color: #696969;
+  float: left;
+}
+
+
+
+
+.ticks {
+  font-size: 10px;
+}
+
+.track,
+.track-inset,
+.track-overlay {
+  stroke-linecap: round;
+}
+
+.track {
+  stroke: #000;
+  stroke-opacity: 0.3;
+  stroke-width: 10px;
+}
+
+.track-inset {
+  stroke: #dcdcdc;
+  stroke-width: 8px;
+}
+
+.track-overlay {
+  pointer-events: stroke;
+  stroke-width: 50px;
+  stroke: transparent;
+  cursor: crosshair;
+}
+
+.handle {
+  fill: #fff;
+  stroke: #000;
+  stroke-opacity: 0.5;
+  stroke-width: 1.25px;
+    }
+
+
+#dd {
+	background: #f08080;
+  padding-right: 26px;
+	border-radius: 3px;
+  border: none;
+	color: white;
+	margin: 0;
+	padding: 0 12px;
+	width: auto;
+	cursor: pointer;
+	height: 30px;
+}
+
+.limit {
+	position: absolute;
+    top: 50%;
+    left: 50%;
+}
+
+#maphover.tooltip { 
+    /* Position the tooltip */
+    position: absolute;
+    text-align: center;     
+    width: 80px;    
+    height: auto;         
+    padding: 2px;       
+    font: 12px sans-serif;    
+    background: lightblue; 
+    border: 0px;    
+    border-radius: 8px;     
+    pointer-events: none;  
+    font-family: "Source Sans Pro", Helvetica, sans-serif;
+	  font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: normal;
+}
+
+
+#vis {
+  	float: left;
+  	position: absolute;
+  	top: 350px;
+  	left: 750px;
+}
+
+
+</style>

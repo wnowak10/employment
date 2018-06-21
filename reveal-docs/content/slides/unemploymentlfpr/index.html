@@ -15,7 +15,7 @@
 <script src="https://d3js.org/d3-axis.v1.min.js"></script>
 <script src="https://d3js.org/d3-drag.v1.min.js"></script>
 <script src="https://cdn.rawgit.com/vast-engineering/jquery-popup-overlay/1.7.13/jquery.popupoverlay.js"></script>
-<script src="js/keybinding.js"></script>
+
 <body>
 
 </body>
@@ -57,10 +57,6 @@ var valueline = d3.line()
     .x(function(d) { return x(d.date); })
     .y(function(d) { return y(d.unrate); });
 
-var lfpr_line = d3.line()
-    .x(function(d) { return x(d.date); })
-    .y(function(d) { return y(d.lfpr); });
-
 
 var svg = grid.append("div").append("svg")
     .attr("width", width + margin.left + margin.right)
@@ -77,15 +73,13 @@ d3.csv("data.csv", function(error, data) {
   data.forEach(function(d) {
       d.date = parseTime(d.DATE);
       d.unrate = +d.UNRATE;
-      d.lfpr = +d.notinLF;//+d.LFPR;
   });
 
   // Scale the range of the data
   x.domain(d3.extent(data, function(d) { return d.date; }));
-  // y.domain([0, d3.max(data, function(d) { return d.unrate; })]);
-y.domain([0,10]);
-  
-  // UE
+  console.log(d3.extent(data, function(d) { return d.date; }));
+  y.domain([0, d3.max(data, function(d) { return d.unrate; })]);
+
   path =  svg.append("path")
       .datum(data)
       .attr("fill", "none")
@@ -107,74 +101,6 @@ y.domain([0,10]);
       .duration(2500)
       .attr("stroke-dashoffset", 0);
 
-
-d3.select('body').call(d3.keybinding()
-    .on('→', function(d){
-
-       // LFPR
-  lfpr_path =  svg.append("path")
-      .datum(data)
-      .attr("fill", "none")
-      // .attr("id", "emp_line")
-      .attr("stroke", "blue")
-      .attr("stroke-linejoin", "round")
-      .attr("stroke-linecap", "round")
-      .attr("stroke-width", 2.5)
-      .attr("d", lfpr_line);
-
-      console.log(path)
-
-  totalLengthLFPR = path.node().getTotalLength();
-
-  lfpr_path
-      .attr("stroke-dasharray", totalLengthLFPR + " " + totalLengthLFPR)
-      .attr("stroke-dashoffset", totalLengthLFPR)
-      .transition()
-      // .delay(1000)
-      .duration(2500)
-      .attr("stroke-dashoffset", 0);
-
-      y.domain([0,50]);
-
-        // Add the Y Axis
-        d3.select("#yaxis").remove();
-  svg.append("g")
-      .call(d3.axisLeft(y));
-
-
-      console.log('pressed?')
-    })
-    );
-
-
-  // //
-  // // LFPR
-  // lfpr_path =  svg.append("path")
-  //     .datum(data)
-  //     .attr("fill", "none")
-  //     // .attr("id", "emp_line")
-  //     .attr("stroke", "blue")
-  //     .attr("stroke-linejoin", "round")
-  //     .attr("stroke-linecap", "round")
-  //     .attr("stroke-width", 2.5)
-  //     .attr("d", lfpr_line);
-
-  //     console.log(path)
-
-  // totalLengthLFPR = path.node().getTotalLength();
-
-  // lfpr_path
-  //     .attr("stroke-dasharray", totalLengthLFPR + " " + totalLengthLFPR)
-  //     .attr("stroke-dashoffset", totalLengthLFPR)
-  //     .transition()
-  //     .delay(1000)
-  //     .duration(2500)
-  //     .attr("stroke-dashoffset", 0);
-
-
-
-
-
       // Add the X Axis
   svg.append("g")
       .attr("transform", "translate(0," + height + ")")
@@ -182,7 +108,6 @@ d3.select('body').call(d3.keybinding()
 
   // Add the Y Axis
   svg.append("g")
-    .attr('id', 'yaxis')
       .call(d3.axisLeft(y));
 
 });
