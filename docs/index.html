@@ -1,4 +1,11 @@
+<!-- References: -->
+<!-- http://bl.ocks.org/d3noob/7030f35b72de721622b8 -->
+<!-- http://bl.ocks.org/phoebebright/3131368 -->
+<!-- onclick: https://stackoverflow.com/questions/46713258/detecting-keypress-in-d3-js -->
 
+<!-- A general note -- this script uses d3.js v4. Cv3 and v4
+are often not compatabile, unfortunately, so if encountering
+unexpected errors...check this. -->
 
 <!DOCTYPE html>
 <meta charset="utf-8">
@@ -8,6 +15,7 @@
 </head>
 
 
+<!-- <script src="https://d3js.org/d3.v3.min.js"></script>  -->
 <script src="https://d3js.org/d3.v4.min.js"></script> 
 <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script> 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
@@ -22,16 +30,18 @@
 
 <script type="text/javascript">
 
+// Layout page with CSS grid
+// Add tutorial with HTML overlay
+// On click, increment count variable and move through steps of the story, each of which is
+// outlined in its own function?
 
+// Set up grid, on which we can place objects.
 var grid = d3.select("body")
   .append("div")
   .attr("id", "grid")
   .attr("class", "grid");
 
-var div = d3.select("body").append("div") 
-    .attr("class", "tooltip")       
-    .style("opacity", 0);
-    
+// Initial text    
   grid
   .append("div")
   .attr("class", "row_divs")
@@ -39,173 +49,177 @@ var div = d3.select("body").append("div")
   .attr("id", "title_text")
   .text("The unemployment rate has recovered nicely since the financial crisis.");
 
-
-// set the dimensions and margins of the graph
+// Global variables, setup, housekeeping.
 var margin = {top: 20, right: 20, bottom: 30, left: 50},
     width = 960 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
-// parse the date / time
 var parseTime = d3.timeParse("%Y-%m-%d");
 
-// set the ranges
-var x = d3.scaleTime().range([0, width]);
-var y = d3.scaleLinear().range([height, 0]);
+transitionTime = 2000;
 
-// define the line
-var valueline = d3.line()
-    .x(function(d) { return x(d.date); })
-    .y(function(d) { return y(d.unrate); });
-
-var lfpr_line = d3.line()
-    .x(function(d) { return x(d.date); })
-    .y(function(d) { return y(d.lfpr); });
-
-
+// SVG element contains our main chart.
 var svg = grid.append("div").append("svg")
+    .attr('id', 'emp_chart')
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
-  .append("g")
+    .append("g")
     .attr("transform",
           "translate(" + margin.left + "," + margin.top + ")");
 
-
-
-
-y.domain([0,10]);
-
-
-// Add the Y Axis
-  var yAxis = svg.append("g")
-    .attr('id', 'yaxis')
-      .call(d3.axisLeft(y));
+function initialDraw(){
   
-  
-
-// Get the data
-d3.csv("data.csv", function(error, data) {
+}
+// Import the data
+d3.csv("employment.csv", function(error, data) {
   if (error) throw error;
 
-  // format the data
+  // set the ranges
+  var x = d3.scaleTime().range([0, width]);
+  var y = d3.scaleLinear().range([height, 0]);
+
+  // define the lines
+  var ueline = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return y(d.unrate); });
+
+  var lfpr_line = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return y(d.lfpr); });
+
+  // format the data as time and numeric
   data.forEach(function(d) {
       d.date = parseTime(d.DATE);
       d.unrate = +d.UNRATE;
       d.lfpr = +d.notinLF;//+d.LFPR;
   });
 
-  // Scale the range of the data
+  // Scale the range of the data for initial load.
   x.domain(d3.extent(data, function(d) { return d.date; }));
-  // y.domain([0, d3.max(data, function(d) { return d.unrate; })]);
-      // Add the X Axis
+  y.domain([0, d3.max(data, function(d) { return d.unrate; })]);
+
+  // Add the Y Axis
+  var yAxis = svg.append("g")
+    .attr('id', 'yaxis')
+    .call(d3.axisLeft().scale(y));
+
+  // Add the X Axis
   var xAxis = svg.append("g")
-      .attr("transform", "translate(0," + height + ")")
-      .attr('id','xaxis')
-      .call(d3.axisBottom(x).ticks(5).tickFormat(d3.timeFormat("%Y")));
+    .attr("transform", "translate(0," + height + ")")
+    .attr('id','xaxis')
+    .call(d3.axisBottom(x).ticks(5).tickFormat(d3.timeFormat("%Y")));
 
-  //     // Add the X Axis
-  // var xAxis = svg.append("g")
-  //     .attr("transform", "translate(0," + height + ")")
-  //     .attr('id','xaxis')
-  //     .call(d3.axisBottom(x).ticks(5).tickFormat(d3.timeFormat("%Y")));
-
-  // // Add the Y Axis
-  // var yAxis = svg.append("g")
-  //   .attr('id', 'yaxis')
-  //     .call(d3.axisLeft(y));
   
-  // UE
+  // Draw UE line.
   path =  svg.append("path")
-      .datum(data)
-      .attr("fill", "none")
-      .attr("id", "emp_line")
-      .attr("stroke", "red")
-      .attr("stroke-linejoin", "round")
-      .attr("stroke-linecap", "round")
-      .attr("stroke-width", 2.5)
-      .attr("d", valueline);
+    .datum(data)
+    .attr("fill", "none")
+    .attr("id", "emp_line")
+    .attr("stroke", "red")
+    .attr("stroke-linejoin", "round")
+    .attr("stroke-linecap", "round")
+    .attr("stroke-width", 2.5)
+    .attr("d", ueline);
 
-      console.log(path)
-
+  // Mechanism for animating line path left to right.
   totalLength = path.node().getTotalLength();
-
   path
-      .attr("stroke-dasharray", totalLength + " " + totalLength)
-      .attr("stroke-dashoffset", totalLength)
-      .transition()
-      .duration(2500)
-      .attr("stroke-dashoffset", 0);
+    .attr("stroke-dasharray", totalLength + " " + totalLength)
+    .attr("stroke-dashoffset", totalLength)
+    .transition()
+    .duration(transitionTime)
+    .attr("stroke-dashoffset", 0);
 
 
+function addLFPR(){
+  // Draws in the LFPR line.
 
-
-//onclick 
-
-
-d3.select('body').call(d3.keybinding()
-    .on('→', function(d){
-
-       // add LFPR
   lfpr_path =  svg.append("path")
-      .datum(data)
-      .attr("fill", "none")
-      // .attr("id", "emp_line")
-      .attr("stroke", "blue")
-      .attr("stroke-linejoin", "round")
-      .attr("stroke-linecap", "round")
-      .attr("stroke-width", 2.5)
-      .attr("d", lfpr_line);
+    .datum(data)
+    .attr("fill", "none")
+    .attr("stroke", "blue")
+    .attr("stroke-linejoin", "round")
+    .attr("stroke-linecap", "round")
+    .attr("stroke-width", 2.5)
+    .attr("d", lfpr_line);
 
-      console.log(path)
-
+  // Mechanism for animating line path.
   totalLengthLFPR = path.node().getTotalLength();
-
   lfpr_path
       .attr("stroke-dasharray", totalLengthLFPR + " " + totalLengthLFPR)
       .attr("stroke-dashoffset", totalLengthLFPR)
       .transition()
-      // .delay(1000)
-      .duration(2500)
+      .duration(transitionTime)
       .attr("stroke-dashoffset", 0);
+    };
+
+function rescaleUE() {
+    // Transitions the the unemployment line to new scale.
+    // This is important if we wanted to have 
+    // multiple lines on same graph sharing an axis.
+
+  // New domain for LFPR. 
+  y.domain([30, 50]); // Making this range outside of UE causes red line to fall away, which is actually kinda fun. 
+  // A way to eliminate magic numbers.
+  // y.domain([0, d3.max(data, function(d) { return d.notinLF; })]);
+
+  // Fade out = nice. Save for future reference.
+  // https://groups.google.com/forum/#!msg/d3-js/nkIpeZ60Sas/RZEIhmrsI0cJ
+  //  d3.select("#emp_line")
+  // .style("opacity", 1)
+  // .transition().duration(400).style("opacity", 0);
+
+  d3.select("body")
+    .transition()
+    .select("#emp_line")   // change the line
+    .duration(transitionTime)
+    .attr("d", ueline(data)).select("#yaxis") // change the y axis
+    .duration(transitionTime);
+            // .call(yAxis);
+
+}
+
+// On right arrow key, progress thru story. 
+function story(){
+
+  if (count == 1 ) {
+    rescaleUE();
+    addLFPR();
+  }
+  if (count == 2){
+    console.log('what excitment to come?')
+  }
+  
+}
+
+var count = 0;
+d3.select("body")
+        .on("keydown", function(e) { 
+
+          if (d3.event.keyCode == 39) { // right arrow  
+            count +=1; // progress story
+            story(count);   
+          };
+          if (d3.event.keyCode == 37) { // left arrow  
+            count -=1; // progress story
+            story(count);   
+          };
+        });
 
 
+// d3.select('body').call(d3.keybinding()
+// // d3.selectAll('div').call(d3.keybinding()
+//     // .on('→', function(d){
+//     .on('right', function(d){
+//     console.log('pressed')
+//        // add LFPR
+//     count +=1;
+//     console.log(count)
+//     story(count);
+//     })
+//     );
 
 
-      y.domain([0,50]);
-
-      var bod = d3.select("body").transition();
-
-    // Make the changes
-        bod.select("#emp_line")   // change the line
-            .duration(750)
-            .attr("d", valueline(data));
-        // svg.select(".x.axis") // change the x axis
-            // .duration(750)
-            // .call(xAxis);
-        bod.select("#yaxis") // change the y axis
-            .duration(750)
-            .call(yAxis);
-
-      // d3.select('#emp_line').remove();
-
-      //  path =  svg.append("path")
-      // .datum(data)
-      // .attr("fill", "none")
-      // .attr("id", "emp_line2")
-      // .attr("stroke", "red")
-      // .attr("stroke-linejoin", "round")
-      // .attr("stroke-linecap", "round")
-      // .attr("stroke-width", 2.5)
-      // .attr("d", valueline);
-
-        // Add the Y Axis
-  //       d3.select("#yaxis").remove();
-  // svg.append("g")
-  //     .call(d3.axisLeft(y));
-
-
-      console.log('pressed?')
-    })
-    );
 
 
   // //
