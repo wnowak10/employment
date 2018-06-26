@@ -35,6 +35,10 @@ unexpected errors...check this. -->
 // On click, increment count variable and move through steps of the story, each of which is
 // outlined in its own function?
 
+
+// Key components
+// Draw line, change axes...should these be together or separate?
+
 // Set up grid, on which we can place objects.
 var grid = d3.select("body")
   .append("div")
@@ -73,43 +77,95 @@ var svg = grid.append("div").append("svg")
 d3.csv("employment.csv", function(error, data) {
   if (error) throw error;
 
+  var xx = d3.scaleTime().range([0, width]);
+  var yy = d3.scaleLinear().range([height, 0]);
+
+
+  
+
   // Set the ranges
-  var x = d3.scaleTime().range([0, width]);
-  console.log('we know the height is ', height)
-  var y = d3.scaleLinear().range([height, 0]);
+  // var x = d3.scaleTime().range([0, width]);
+  // var y = d3.scaleLinear().range([height, 0]);
   // Created another y scale for separate line.
   var y2 = d3.scaleLinear().range([height, 0]);
+  var y3 = d3.scaleLinear().range([height, 0]);
 
   // Define the lines. What are x and y values?
-  var ueline = d3.line()
-      .x(function(d) { return x(d.date); })
-      .y(function(d) { return y(d.unrate); });
+  // var ueline = d3.line()
+  //     .x(function(d) { return x(d.date); })
+  //     .y(function(d) { return y(d.unrate); });
 
-  var lfpr_line = d3.line()
-      .x(function(d) { return x(d.date); })
-      .y(function(d) { return y2(d.lfpr); });
+  // var lfpr_line = d3.line()
+  //     .x(function(d) { return xx(d.date); })
+  //     .y(function(d) { return y2(d.lfpr); });
+
+  // var m_not_lfpr_line = d3.line()
+  //     .x(function(d) { return xx(d.date); })
+  //     .y(function(d) { return y3(d.m_not_lfpr); });
+
+  // var w_not_lfpr_line = d3.line()
+  //     .x(function(d) { return xx(d.date); })
+  //     .y(function(d) { return y2(d.w_not_lfpr); });
 
   // Format the data as time and numeric
   data.forEach(function(d) {
       d.date = parseTime(d.DATE);
       d.unrate = +d.UNRATE;
       d.lfpr = +d.notinLF;//+d.LFPR;
+      d.m_not_lfpr = +d.m_not_lfpr;
+      d.w_not_lfpr = +d.w_not_lfpr;
+      // console.log(d)      
   });
 
-  // Scale the range of the data for initial load.
-  x.domain(d3.extent(data, function(d) { return d.date; }));
-  y.domain([0, d3.max(data, function(d) { return d.unrate; })]);
+  function draw_line(data, x, y, color){
 
-  // Add the Y Axis
+    xx.domain(d3.extent(data, function(d) { return d[x]; }));
+    yy.domain([d3.min(data, function(d) { return d[y]; }) - .1*d3.min(data, function(d) { return d[y]; }), 
+          d3.max(data, function(d) { return d[y]; })]); //d.unrate
+
+
+      path =  svg.append("path")
+          .datum(data)
+          .attr("fill", "none")
+          .attr("id", "emp_line")
+          .attr("stroke", color)
+          .attr("stroke-linejoin", "round")
+          .attr("stroke-linecap", "round")
+          .attr("stroke-width", 2.5)
+          .attr("d", d3.line()
+                      .x(function(d) { return xx(d[x]); }) //x.date
+                      .y(function(d) { return yy(d[y]); })); //y.unrate
+
+      // Mechanism for animating line path left to right.
+        totalLength = path.node().getTotalLength();
+        path
+          .attr("stroke-dasharray", totalLength + " " + totalLength)
+          .attr("stroke-dashoffset", totalLength)
+          .transition()
+          .duration(transitionTime)
+          .attr("stroke-dashoffset", 0);
+  };
+
+  // Scale the range of the data for initial load.
+  // xx.domain(d3.extent(data, function(d) { return d.date; }));
+  // yy.domain([0, d3.max(data, function(d) { return d.unrate; })]);
+
+
+  xx.domain(d3.extent(data, function(d) { return d['date']; }));
+  yy.domain([d3.min(data, function(d) { return d['unrate']; }) - .1*d3.min(data, function(d) { return d['unrate']; }), 
+          d3.max(data, function(d) { return d['unrate']; })]); //d.unrate
+
+
+  // Add the Y Axis initially
   var yAxis = svg.append("g")
     .attr('id', 'yaxis')
-    .call(d3.axisLeft().scale(y));
+    .call(d3.axisLeft().scale(yy));
 
   // Add the X Axis
   var xAxis = svg.append("g")
     .attr("transform", "translate(0," + height + ")")
     .attr('id','xaxis')
-    .call(d3.axisBottom(x).ticks(5).tickFormat(d3.timeFormat("%Y")));
+    .call(d3.axisBottom(xx).ticks(5).tickFormat(d3.timeFormat("%Y")));
 
   // Axes labels:
   xAxis.append("text")             
@@ -128,59 +184,84 @@ d3.csv("employment.csv", function(error, data) {
   	.style('fill','black')
   	.text("Percent (%)");      
   
-  
-  // Draw UE line.
-  function draw_ueline() {
-  	path =  svg.append("path")
-	    .datum(data)
-	    .attr("fill", "none")
-	    .attr("id", "emp_line")
-	    .attr("stroke", "steelblue")
-	    .attr("stroke-linejoin", "round")
-	    .attr("stroke-linecap", "round")
-	    .attr("stroke-width", 2.5)
-	    .attr("d", ueline);
 
-  // Mechanism for animating line path left to right.
-  	totalLength = path.node().getTotalLength();
-  	path
-	    .attr("stroke-dasharray", totalLength + " " + totalLength)
-	    .attr("stroke-dashoffset", totalLength)
-	    .transition()
-	    .duration(transitionTime)
-	    .attr("stroke-dashoffset", 0);
-  };
+  // Draw UE line.
+  // function draw_ueline() {
+  // 	path =  svg.append("path")
+	 //    .datum(data)
+	 //    .attr("fill", "none")
+	 //    .attr("id", "emp_line")
+	 //    .attr("stroke", "steelblue")
+	 //    .attr("stroke-linejoin", "round")
+	 //    .attr("stroke-linecap", "round")
+	 //    .attr("stroke-width", 2.5)
+	 //    .attr("d", ueline);
+
+  // // Mechanism for animating line path left to right.
+  // 	totalLength = path.node().getTotalLength();
+  // 	path
+	 //    .attr("stroke-dasharray", totalLength + " " + totalLength)
+	 //    .attr("stroke-dashoffset", totalLength)
+	 //    .transition()
+	 //    .duration(transitionTime)
+	 //    .attr("stroke-dashoffset", 0);
+  // };
 
 
   function addLFPR(){
   // Draws in the LFPR line.
 
-  	lfpr_path =  svg.append("path")
+  	// lfpr_path =  svg.append("path")
+	  //   .datum(data)
+	  //   .attr("fill", "none")
+	  //   .attr("id", "lfpr_line")
+	  //   .attr("stroke", "darkred")
+	  //   .attr("stroke-linejoin", "round")
+	  //   .attr("stroke-linecap", "round")
+	  //   .attr("stroke-width", 2.5)
+	  //   .attr("d", lfpr_line);
+
+   //  // Mechanism for animating line path.
+  	// totalLengthLFPR = lfpr_path.node().getTotalLength();
+  	// lfpr_path
+   //    	.attr("stroke-dasharray", totalLengthLFPR + " " + totalLengthLFPR)
+   //    	.attr("stroke-dashoffset", totalLengthLFPR)
+   //    	.transition()
+   //    	.duration(transitionTime)
+   //    	.attr("stroke-dashoffset", 0);
+
+   	d3.select("#title_text")
+       .transition()
+       .duration(transitionTime/2)
+       .style("opacity", 0)
+       .transition()
+       .text('The percentage of Americans out of the labor force, however, has only continued to rise.')
+       .duration(transitionTime/2)
+       .style("opacity", 1);
+
+    };
+
+  function male_not_LFPR(){
+  // Draws in the LFPR line.
+
+  	m_not_lfpr_path =  svg.append("path")
 	    .datum(data)
 	    .attr("fill", "none")
+	    .attr("id", "lfpr_line")
 	    .attr("stroke", "darkred")
 	    .attr("stroke-linejoin", "round")
 	    .attr("stroke-linecap", "round")
 	    .attr("stroke-width", 2.5)
-	    .attr("d", lfpr_line);
+	    .attr("d", m_not_lfpr_line);
 
-  // Mechanism for animating line path.
-  	totalLengthLFPR = lfpr_path.node().getTotalLength();
-  	lfpr_path
-      	.attr("stroke-dasharray", totalLengthLFPR + " " + totalLengthLFPR)
-      	.attr("stroke-dashoffset", totalLengthLFPR)
+    // Mechanism for animating line path.
+  	men_totalLengthLFPR = m_not_lfpr_path.node().getTotalLength();
+  	m_not_lfpr_path
+      	.attr("stroke-dasharray", men_totalLengthLFPR + " " + men_totalLengthLFPR)
+      	.attr("stroke-dashoffset", men_totalLengthLFPR)
       	.transition()
       	.duration(transitionTime)
       	.attr("stroke-dashoffset", 0);
-
-   	d3.select("#title_text")
-       .transition()
-       .duration(transitionTime/2)//.delay(0)
-       .style("opacity", 0)
-       .transition()
-       .text('Labor force participation, however, has fallen.') //.tween("text","hey!");
-       .duration(transitionTime/2)//.delay(0)
-       .style("opacity", 1);
 
     };
 
@@ -194,6 +275,7 @@ d3.csv("employment.csv", function(error, data) {
   };
 
   function fadeUE() {
+  	console.log('fade UE?')
     // Transitions the the unemployment line to new scale.
     // This is important if we wanted to have 
     // multiple lines on same graph sharing an axis.
@@ -212,29 +294,77 @@ d3.csv("employment.csv", function(error, data) {
 
   	d3.select("body")
 	    .select("#yaxis") // change the y axis
+	    .attr("id", "lfpr_axis")
 	    .transition()
 	    .duration(transitionTime)
 	    .call(d3.axisLeft().scale(y2));
   };
 
+  function fadeLFPR_scale() {
+    console.log('fade UE?')
+    // Transitions the the unemployment line to new scale.
+    // This is important if we wanted to have 
+    // multiple lines on same graph sharing an axis.
+
+  // New domain for LFPR. 
+
+  // y2.domain([30, 50]); // Making this range outside of UE causes red line to fall away, which is actually kinda fun. 
+  // A way to eliminate magic numbers.
+    y3.domain([0, 20]);
+
+  // Fade out.
+  // https://groups.google.com/forum/#!msg/d3-js/nkIpeZ60Sas/RZEIhmrsI0cJ
+    // d3.select("#emp_line")
+    //   .style("opacity", 1)
+    //   .transition().duration(400).style("opacity", 0);
+
+    d3.select("body")
+      .select("#yaxis") // change the y axis
+      // .attr("id", "lfpr_axis")
+      .transition()
+      .duration(transitionTime)
+      .call(d3.axisLeft().scale(y3));
+  };
+
 // On right arrow key, progress thru story. 
    function story(){
    		if (count == 0 ) {
-			addUERightAxis();
-			draw_ueline(); // Add right axis.
-  		}
+   			// Improve our ability to go backwards through story.
+
+			// addUERightAxis(); // Add right axis.
+			y.domain([0, d3.max(data, function(d) { return d.unrate; })]);
+			  // Add the Y Axis
+			svg.append("g")
+				.attr('id', 'yaxis')
+				.call(d3.axisLeft().scale(y));
+
+			draw_line(data, 'date', 'unrate', 'steelblue'); 
+
+			d3.select('#lfpr_axis').remove();
+			d3.select('#lfpr_line').remove();
+  		};
   		if (count == 1 ) {
     		fadeUE();
+        draw_line(data, 'date', 'lfpr', 'darkred'); 
     		addLFPR();
-  		}
-  		if (count == 2){
-    		console.log('what excitment to come?')
-  		}
-	}
+  		};
+  		// if (count == 2){
+  		// 	// Split LFPR line into male and female lfpr
+    //     fadeLFPR_scale();
+  		// 	male_not_LFPR();
+    // 		console.log('what excitment to come?')
+  	};
+
+
+
+  draw_line(data, 'date', 'unrate', 'steelblue'); 
+
+
+	// });
 
 var count = 0;
 // Draw UE to start.
-draw_ueline();
+// draw_line(data, date, unrate); 
 
 // Control story with arrow keys.
 d3.select("body")
