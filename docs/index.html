@@ -12,6 +12,24 @@ unexpected errors...check this. -->
 <head>
 <!-- I personally do not like our current font choice. To edit? -->
 <link rel="stylesheet" type="text/css" href="map.css">
+<style>
+  .modal {
+  position: fixed;
+  width: 300px;
+  height: 100px;
+  top: 40%;
+  left: 70%;
+  margin-top: -50px; /* Negative half of height. */
+  margin-left: -50px; /* Negative half of width. */
+  text-align: center;
+  background-color: rgba(250,218,94,1);
+  color: black;
+  border-radius: 5px;
+  text-align: center;
+  z-index: 11; /* 1px higher than the overlay layer */
+  word-wrap: break-word;
+}
+</style>
 </head>
 
 <!-- <script src="https://d3js.org/d3.v3.min.js"></script>  -->
@@ -23,10 +41,27 @@ unexpected errors...check this. -->
 <script src="https://d3js.org/d3-drag.v1.min.js"></script>
 <script src="https://cdn.rawgit.com/vast-engineering/jquery-popup-overlay/1.7.13/jquery.popupoverlay.js"></script>
 <script src="js/keybinding.js"></script>
-<body>
+<body onclick="off()" onresize="off()">
+
+
+
+   <div class="modal" id="overlay"> 
+    Use the right and left arrows on your keyboard to advance/ rewind the narrative.
+    (Click to remove this dialogue box)
+    </div>
+  
+
 </body>
 
 <script type="text/javascript">
+  function on() {
+    document.getElementById("overlay").style.display = "block";
+  };
+// Overlay control:
+function off() {
+    document.getElementById("overlay").style.display = "none";
+}
+
 // Layout page with CSS grid
 // Add tutorial with HTML overlay
 // On click, increment count variable and move through steps of the story, each of which is
