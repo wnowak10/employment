@@ -190,6 +190,16 @@ d3.csv("employment.csv", function(error, data) {
 	    .call(d3.axisLeft().scale(yy));
   };
 
+  function change_slide_title(new_title){
+    d3.select("#title_text")
+       .transition()
+       .duration(transitionTime/2)//.delay(0)
+       .style("opacity", 0)
+       .transition()
+       .text(new_title) //.tween("text","hey!");
+       .duration(transitionTime/2)//.delay(0)
+       .style("opacity", 1);
+  };
 
 
 // On right arrow key, progress thru story. 
@@ -213,6 +223,7 @@ d3.csv("employment.csv", function(error, data) {
   		if (count == 1 ) {
     		fade_line('#emp_line');
         fadeAxis(old_axis_id = 'unemployment_axis', new_axis_id = 'lfpr_axis', new_series = 'notinLF');
+        change_slide_title('Labor force participation, however, has fallen.');
         draw_line(data, 'date', 'lfpr', 'darkred', 'lfpr_line'); 
     		// addLFPR();
   		};
