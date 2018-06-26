@@ -61,7 +61,7 @@ var margin = {top: 20, right: 20, bottom: 50, left: 100},
 
 var parseTime = d3.timeParse("%Y-%m-%d");
 
-transitionTime = 3000;
+transitionTime = 1000;
 
 // SVG element contains our main chart.
 var svg = grid.append("div").append("svg")
@@ -77,35 +77,9 @@ var svg = grid.append("div").append("svg")
 d3.csv("employment.csv", function(error, data) {
   if (error) throw error;
 
+  // D3 scales
   var xx = d3.scaleTime().range([0, width]);
   var yy = d3.scaleLinear().range([height, 0]);
-
-
-  
-
-  // Set the ranges
-  // var x = d3.scaleTime().range([0, width]);
-  // var y = d3.scaleLinear().range([height, 0]);
-  // Created another y scale for separate line.
-  var y2 = d3.scaleLinear().range([height, 0]);
-  // var y3 = d3.scaleLinear().range([height, 0]);
-
-  // Define the lines. What are x and y values?
-  // var ueline = d3.line()
-  //     .x(function(d) { return x(d.date); })
-  //     .y(function(d) { return y(d.unrate); });
-
-  // var lfpr_line = d3.line()
-  //     .x(function(d) { return xx(d.date); })
-  //     .y(function(d) { return y2(d.lfpr); });
-
-  // var m_not_lfpr_line = d3.line()
-  //     .x(function(d) { return xx(d.date); })
-  //     .y(function(d) { return y3(d.m_not_lfpr); });
-
-  // var w_not_lfpr_line = d3.line()
-  //     .x(function(d) { return xx(d.date); })
-  //     .y(function(d) { return y2(d.w_not_lfpr); });
 
   // Format the data as time and numeric
   data.forEach(function(d) {
@@ -117,7 +91,7 @@ d3.csv("employment.csv", function(error, data) {
       // console.log(d)      
   });
 
-  function draw_line(data, x, y, color){
+  function draw_line(data, x, y, color, line_id){
 
     xx.domain(d3.extent(data, function(d) { return d[x]; }));
 
@@ -128,7 +102,7 @@ d3.csv("employment.csv", function(error, data) {
       path =  svg.append("path")
           .datum(data)
           .attr("fill", "none")
-          .attr("id", "emp_line")
+          .attr("id", line_id)
           .attr("stroke", color)
           .attr("stroke-linejoin", "round")
           .attr("stroke-linecap", "round")
@@ -147,193 +121,76 @@ d3.csv("employment.csv", function(error, data) {
           .attr("stroke-dashoffset", 0);
   };
 
-  // Scale the range of the data for initial load.
-  // xx.domain(d3.extent(data, function(d) { return d.date; }));
-  // yy.domain([0, d3.max(data, function(d) { return d.unrate; })]);
-
   // Add initial axes.
 
-  xx.domain(d3.extent(data, function(d) { return d['date']; }));
-  yy.domain([d3.min(data, function(d) { return d['unrate']; }) - .1*d3.min(data, function(d) { return d['unrate']; }), 
-          d3.max(data, function(d) { return d['unrate']; })]); //d.unrate
+  function axes_labels(xAxis, yAxis, x_axis_label, y_axis_label){
+    // Axes labels:
+    xAxis.append("text")             
+      .attr("transform",
+          "translate(" + (width/2) + " ," + 
+                         (margin.top + 20) + ")")
+      .style("text-anchor", "middle")
+      .style('fill','black')
+      .text(x_axis_label);
 
+    xAxis.append("text").attr("transform", "rotate(-90)")
+      .attr("y", -2*margin.top)
+      .attr("x",(height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .style('fill','black')
+      .text(y_axis_label); 
 
-  // Add the Y Axis initially
-  var yAxis = svg.append("g")
-    .attr('id', 'unemployment_axis')
-    .call(d3.axisLeft().scale(yy));
+  };
 
-  // Add the X Axis
-  var xAxis = svg.append("g")
-    .attr("transform", "translate(0," + height + ")")
-    .attr('id','xaxis')
-    .call(d3.axisBottom(xx).ticks(5).tickFormat(d3.timeFormat("%Y")));
+  function addInitialAxes(x_axis_series, y_axis_series){
 
-  // Axes labels:
-  xAxis.append("text")             
-  	.attr("transform",
-        "translate(" + (width/2) + " ," + 
-                       (margin.top + 20) + ")")
-  	.style("text-anchor", "middle")
-  	.style('fill','black')
-  	.text("Date");
+    xx.domain(d3.extent(data, function(d) { return d[x_axis_series]; }));
+    yy.domain([d3.min(data, function(d) { return d[y_axis_series]; }) - .1*d3.min(data, function(d) { return d[y_axis_series]; }), 
+          d3.max(data, function(d) { return d[y_axis_series]; })]); //d.unrate
 
-  xAxis.append("text").attr("transform", "rotate(-90)")
-  	.attr("y", -2*margin.top)
-  	.attr("x",(height / 2))
-  	.attr("dy", "1em")
-  	.style("text-anchor", "middle")
-  	.style('fill','black')
-  	.text("Percent (%)");      
-  
+    // Add the Y Axis initially
+    var yAxis = svg.append("g")
+      .attr('id', 'unemployment_axis')
+      .call(d3.axisLeft().scale(yy));
 
-  // Draw UE line.
-  // function draw_ueline() {
-  // 	path =  svg.append("path")
-	 //    .datum(data)
-	 //    .attr("fill", "none")
-	 //    .attr("id", "emp_line")
-	 //    .attr("stroke", "steelblue")
-	 //    .attr("stroke-linejoin", "round")
-	 //    .attr("stroke-linecap", "round")
-	 //    .attr("stroke-width", 2.5)
-	 //    .attr("d", ueline);
+    // Add the X Axis
+    var xAxis = svg.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .attr('id','xaxis')
+      .call(d3.axisBottom(xx).ticks(5).tickFormat(d3.timeFormat("%Y")));
 
-  // // Mechanism for animating line path left to right.
-  // 	totalLength = path.node().getTotalLength();
-  // 	path
-	 //    .attr("stroke-dasharray", totalLength + " " + totalLength)
-	 //    .attr("stroke-dashoffset", totalLength)
-	 //    .transition()
-	 //    .duration(transitionTime)
-	 //    .attr("stroke-dashoffset", 0);
-  // };
+    axes_labels(xAxis,yAxis,'Date', 'Percent (%)');
+    
+  }
 
+  addInitialAxes('date', 'unrate');
+       
 
-  // function addLFPR(){
-  // // Draws in the LFPR line.
-
-  // 	// lfpr_path =  svg.append("path")
-	 //  //   .datum(data)
-	 //  //   .attr("fill", "none")
-	 //  //   .attr("id", "lfpr_line")
-	 //  //   .attr("stroke", "darkred")
-	 //  //   .attr("stroke-linejoin", "round")
-	 //  //   .attr("stroke-linecap", "round")
-	 //  //   .attr("stroke-width", 2.5)
-	 //  //   .attr("d", lfpr_line);
-
-  //  //  // Mechanism for animating line path.
-  // 	// totalLengthLFPR = lfpr_path.node().getTotalLength();
-  // 	// lfpr_path
-  //  //    	.attr("stroke-dasharray", totalLengthLFPR + " " + totalLengthLFPR)
-  //  //    	.attr("stroke-dashoffset", totalLengthLFPR)
-  //  //    	.transition()
-  //  //    	.duration(transitionTime)
-  //  //    	.attr("stroke-dashoffset", 0);
-
-  //  	d3.select("#title_text")
-  //      .transition()
-  //      .duration(transitionTime/2)
-  //      .style("opacity", 0)
-  //      .transition()
-  //      .text('The percentage of Americans out of the labor force, however, has only continued to rise.')
-  //      .duration(transitionTime/2)
-  //      .style("opacity", 1);
-
-  //   };
-
-  // function male_not_LFPR(){
-  // // Draws in the LFPR line.
-
-  // 	m_not_lfpr_path =  svg.append("path")
-	 //    .datum(data)
-	 //    .attr("fill", "none")
-	 //    .attr("id", "lfpr_line")
-	 //    .attr("stroke", "darkred")
-	 //    .attr("stroke-linejoin", "round")
-	 //    .attr("stroke-linecap", "round")
-	 //    .attr("stroke-width", 2.5)
-	 //    .attr("d", m_not_lfpr_line);
-
-  //   // Mechanism for animating line path.
-  // 	men_totalLengthLFPR = m_not_lfpr_path.node().getTotalLength();
-  // 	m_not_lfpr_path
-  //     	.attr("stroke-dasharray", men_totalLengthLFPR + " " + men_totalLengthLFPR)
-  //     	.attr("stroke-dashoffset", men_totalLengthLFPR)
-  //     	.transition()
-  //     	.duration(transitionTime)
-  //     	.attr("stroke-dashoffset", 0);
-
-  //   };
-
-  // How toadd right axis. 
-  // Don't delete?
- //  function addUERightAxis(){
-	// svg.append("g")
-	//   	.attr("transform", "translate( " + width + ", 0 )")
-	//     .attr('id', 'yaxis')
-	//     .transition()
-	//     .duration(transitionTime)
-	//     .call(d3.axisRight().scale(y));
- //  };
 
   function fade_line(line_id) {
-  	console.log('fade UE?')
-    // Transitions the the unemployment line to new scale.
-    // This is important if we wanted to have 
-    // multiple lines on same graph sharing an axis.
-
-  // New domain for LFPR. 
-
-  // y2.domain([30, 50]); // Making this range outside of UE causes red line to fall away, which is actually kinda fun. 
-  // A way to eliminate magic numbers.
-
   // Fade out.
   // https://groups.google.com/forum/#!msg/d3-js/nkIpeZ60Sas/RZEIhmrsI0cJ
   	d3.select(line_id) //#emp_line
   		.style("opacity", 1)
   		.transition().duration(400).style("opacity", 0);
 
-      };
+    };
 
-function fadeAxis(old_axis_id, new_axis_id, new_series){
-  
-    y2.domain([30, d3.max(data, function(d) { return d[new_series]; })]);
+  function fadeAxis(old_axis_id, new_axis_id, new_series){
+
+    yy.domain([d3.min(data, function(d) { return d[new_series]; }) - .1*d3.min(data, function(d) { return d[new_series]; }), 
+      d3.max(data, function(d) { return d[new_series]; })]);
 
   	d3.select("body")
-	    .select('#'+old_axis_id) // change the y axis
-	    .attr("id", new_axis_id) //lfpr_axis
+	    .select('#'+old_axis_id) // change out the old y axis
+	    .attr("id", new_axis_id) //give a new id tag to the new axis
 	    .transition()
 	    .duration(transitionTime)
-	    .call(d3.axisLeft().scale(y2));
+	    .call(d3.axisLeft().scale(yy));
   };
 
-  // function fadeLFPR_scale() {
-  //   console.log('fade UE?')
-  //   // Transitions the the unemployment line to new scale.
-  //   // This is important if we wanted to have 
-  //   // multiple lines on same graph sharing an axis.
 
-  // // New domain for LFPR. 
-
-  // // y2.domain([30, 50]); // Making this range outside of UE causes red line to fall away, which is actually kinda fun. 
-  // // A way to eliminate magic numbers.
-  //   y3.domain([0, 20]);
-
-  // // Fade out.
-  // // https://groups.google.com/forum/#!msg/d3-js/nkIpeZ60Sas/RZEIhmrsI0cJ
-  //   // d3.select("#emp_line")
-  //   //   .style("opacity", 1)
-  //   //   .transition().duration(400).style("opacity", 0);
-
-  //   d3.select("body")
-  //     .select("#yaxis") // change the y axis
-  //     // .attr("id", "lfpr_axis")
-  //     .transition()
-  //     .duration(transitionTime)
-  //     .call(d3.axisLeft().scale(y3));
-  // };
 
 // On right arrow key, progress thru story. 
    function story(){
@@ -341,22 +198,23 @@ function fadeAxis(old_axis_id, new_axis_id, new_series){
    			// Improve our ability to go backwards through story.
 
 			// addUERightAxis(); // Add right axis.
-			y.domain([0, d3.max(data, function(d) { return d.unrate; })]);
-			  // Add the Y Axis
-			svg.append("g")
-				.attr('id', 'yaxis')
-				.call(d3.axisLeft().scale(y));
 
-			draw_line(data, 'date', 'unrate', 'steelblue'); 
+			// y.domain([0, d3.max(data, function(d) { return d.unrate; })]);
+			//   // Add the Y Axis
+			// svg.append("g")
+			// 	.attr('id', 'yaxis')
+			// 	.call(d3.axisLeft().scale(y));
+      fade_line('lfpr_line');
+			draw_line(data, 'date', 'unrate', 'steelblue', 'emp_line'); 
 
-			d3.select('#lfpr_axis').remove();
-			d3.select('#lfpr_line').remove();
+			// d3.select('#lfpr_axis').remove();
+			// d3.select('#lfpr_line').remove();
   		};
   		if (count == 1 ) {
     		fade_line('#emp_line');
-        fadeAxis('unemployment_axis', 'lfpr_axis', 'notinLF');
-        draw_line(data, 'date', 'lfpr', 'darkred'); 
-    		addLFPR();
+        fadeAxis(old_axis_id = 'unemployment_axis', new_axis_id = 'lfpr_axis', new_series = 'notinLF');
+        draw_line(data, 'date', 'lfpr', 'darkred', 'lfpr_line'); 
+    		// addLFPR();
   		};
   		// if (count == 2){
   		// 	// Split LFPR line into male and female lfpr
@@ -367,10 +225,8 @@ function fadeAxis(old_axis_id, new_axis_id, new_series){
 
 
 
-  draw_line(data, 'date', 'unrate', 'steelblue'); 
+  draw_line(data, 'date', 'unrate', 'steelblue', 'emp_line'); 
 
-
-	// });
 
 var count = 0;
 // Draw UE to start.
