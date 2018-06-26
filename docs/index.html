@@ -10,10 +10,9 @@ unexpected errors...check this. -->
 <!DOCTYPE html>
 <meta charset="utf-8">
 <head>
+<!-- I personally do not like our current font choice. To edit? -->
 <link rel="stylesheet" type="text/css" href="map.css">
-
 </head>
-
 
 <!-- <script src="https://d3js.org/d3.v3.min.js"></script>  -->
 <script src="https://d3js.org/d3.v4.min.js"></script> 
@@ -25,19 +24,17 @@ unexpected errors...check this. -->
 <script src="https://cdn.rawgit.com/vast-engineering/jquery-popup-overlay/1.7.13/jquery.popupoverlay.js"></script>
 <script src="js/keybinding.js"></script>
 <body>
-
 </body>
 
 <script type="text/javascript">
-
 // Layout page with CSS grid
 // Add tutorial with HTML overlay
 // On click, increment count variable and move through steps of the story, each of which is
 // outlined in its own function?
 
-
 // Key components
-// Draw line, change axes...should these be together or separate?
+// Draw line, fade line, change axis. Works well for drawing single lines. 
+// What if we want to get more complicated?
 
 // Set up grid, on which we can place objects.
 var grid = d3.select("body")
@@ -58,10 +55,9 @@ var grid = d3.select("body")
 var margin = {top: 20, right: 20, bottom: 50, left: 100},
     width = 960 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
-
 var parseTime = d3.timeParse("%Y-%m-%d");
-
-transitionTime = 1000;
+transitionTime = 2500; // What feels best? Should it always be the same?
+how_far_below_min_for_y_scale = .1
 
 // SVG element contains our main chart.
 var svg = grid.append("div").append("svg")
@@ -95,7 +91,8 @@ d3.csv("employment.csv", function(error, data) {
 
     xx.domain(d3.extent(data, function(d) { return d[x]; }));
 
-    yy.domain([d3.min(data, function(d) { return d[y]; }) - .1*d3.min(data, function(d) { return d[y]; }), 
+    yy.domain([d3.min(data, function(d) { return d[y]; }) - 
+      how_far_below_min_for_y_scale*d3.min(data, function(d) { return d[y]; }), 
           d3.max(data, function(d) { return d[y]; })]); //d.unrate
 
 
@@ -146,8 +143,9 @@ d3.csv("employment.csv", function(error, data) {
   function addInitialAxes(x_axis_series, y_axis_series){
 
     xx.domain(d3.extent(data, function(d) { return d[x_axis_series]; }));
-    yy.domain([d3.min(data, function(d) { return d[y_axis_series]; }) - .1*d3.min(data, function(d) { return d[y_axis_series]; }), 
-          d3.max(data, function(d) { return d[y_axis_series]; })]); //d.unrate
+    yy.domain([d3.min(data, function(d) { return d[y_axis_series]; }) - 
+      how_far_below_min_for_y_scale*d3.min(data, function(d) { return d[y_axis_series]; }), 
+          d3.max(data, function(d) { return d[y_axis_series]; })]);
 
     // Add the Y Axis initially
     var yAxis = svg.append("g")
@@ -179,7 +177,8 @@ d3.csv("employment.csv", function(error, data) {
 
   function fadeAxis(old_axis_id, new_axis_id, new_series){
 
-    yy.domain([d3.min(data, function(d) { return d[new_series]; }) - .1*d3.min(data, function(d) { return d[new_series]; }), 
+    yy.domain([d3.min(data, function(d) { return d[new_series]; }) - 
+      how_far_below_min_for_y_scale*d3.min(data, function(d) { return d[new_series]; }), 
       d3.max(data, function(d) { return d[new_series]; })]);
 
   	d3.select("body")
@@ -223,15 +222,17 @@ d3.csv("employment.csv", function(error, data) {
   		if (count == 1 ) {
     		fade_line('#emp_line');
         fadeAxis(old_axis_id = 'unemployment_axis', new_axis_id = 'lfpr_axis', new_series = 'notinLF');
-        change_slide_title('Labor force participation, however, has fallen.');
+        change_slide_title('Lack of labor force participation, however, has been rising at the same time.');
         draw_line(data, 'date', 'lfpr', 'darkred', 'lfpr_line'); 
     		// addLFPR();
   		};
-  		// if (count == 2){
+  		if (count == 2){
   		// 	// Split LFPR line into male and female lfpr
-    //     fadeLFPR_scale();
-  		// 	male_not_LFPR();
-    // 		console.log('what excitment to come?')
+      fade_line('#lfpr_line');
+      fadeAxis(old_axis_id = 'lfpr_axis', new_axis_id = 'm_not_lfpr_axis', new_series = 'm_not_lfpr');
+      draw_line(data=data, x='date', y='m_not_lfpr', color='purple', line_id = 'm_not_lfpr_line');
+      change_slide_title('For men, in particular, the number out of the labor force has seen a sharp rise.');
+      };
   	};
 
 
@@ -240,9 +241,6 @@ d3.csv("employment.csv", function(error, data) {
 
 
 var count = 0;
-// Draw UE to start.
-// draw_line(data, date, unrate); 
-
 // Control story with arrow keys.
 d3.select("body")
 	.on("keydown", function(e) { 
@@ -256,7 +254,7 @@ d3.select("body")
             story(count);   
         };
     });
-
+// Close d3.csv.
 });
 
 </script>
