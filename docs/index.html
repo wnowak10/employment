@@ -127,10 +127,9 @@ var margin = {top: 20, right: 20, bottom: 50, left: 100},
 var parseTime = d3.timeParse("%Y-%m-%d");
 transitionTime = 2500; // What feels best? Should it always be the same?
 how_far_below_min_for_y_scale = .1
-
+var percentFormat = d3.format(".1%");
 
 var leftarrow = grid.append("div").attr("id", "leftarrow");
-
 
 
 // SVG element contains our main chart.
@@ -154,23 +153,18 @@ d3.csv("employment.csv", function(error, data) {
   // Format the data as time and numeric
   data.forEach(function(d) {
       d.date = parseTime(d.DATE);
-      d.unrate = +d.UNRATE;
-      d.lfpr = +d.notinLF;//+d.LFPR;
-      d.m_not_lfpr = +d.m_not_lfpr;
-      d.w_not_lfpr = +d.w_not_lfpr;
-      // console.log(d)      
+      d.unrate = +d.UNRATE/100;
+      d.notinLF = +d.notinLF/100;//+d.LFPR;
+      d.m_not_lfpr = +d.m_not_lfpr/100;
+      d.w_not_lfpr = +d.w_not_lfpr/100;
   });
 
   function draw_line(data, x, y, color, line_id){
-
     xx.domain(d3.extent(data, function(d) { return d[x]; }));
-
     yy.domain([d3.min(data, function(d) { return d[y]; }) - 
       how_far_below_min_for_y_scale*d3.min(data, function(d) { return d[y]; }), 
           d3.max(data, function(d) { return d[y]; })]); //d.unrate
-
-
-      path =  svg.append("path")
+    path =  svg.append("path")
           .datum(data)
           .attr("fill", "none")
           .attr("id", line_id)
@@ -183,8 +177,8 @@ d3.csv("employment.csv", function(error, data) {
                       .y(function(d) { return yy(d[y]); })); //y.unrate
 
       // Mechanism for animating line path left to right.
-        totalLength = path.node().getTotalLength();
-        path
+    totalLength = path.node().getTotalLength();
+    path
           .attr("stroke-dasharray", totalLength + " " + totalLength)
           .attr("stroke-dashoffset", totalLength)
           .transition()
@@ -203,9 +197,9 @@ d3.csv("employment.csv", function(error, data) {
       .style("text-anchor", "middle")
       .style('fill','black')
       .text(x_axis_label);
-
+    // y axis label
     xAxis.append("text").attr("transform", "rotate(-90)")
-      .attr("y", -2*margin.top)
+      .attr("y", -3*margin.top)
       .attr("x",(height / 2))
       .attr("dy", "1em")
       .style("text-anchor", "middle")
@@ -215,52 +209,41 @@ d3.csv("employment.csv", function(error, data) {
   };
 
   function addInitialAxes(x_axis_series, y_axis_series){
-
     xx.domain(d3.extent(data, function(d) { return d[x_axis_series]; }));
     yy.domain([d3.min(data, function(d) { return d[y_axis_series]; }) - 
       how_far_below_min_for_y_scale*d3.min(data, function(d) { return d[y_axis_series]; }), 
           d3.max(data, function(d) { return d[y_axis_series]; })]);
-
     // Add the Y Axis initially
     var yAxis = svg.append("g")
       .attr('id', 'unemployment_axis')
-      .call(d3.axisLeft().scale(yy));
-
+      .call(d3.axisLeft().tickFormat(percentFormat).scale(yy));
     // Add the X Axis
     var xAxis = svg.append("g")
       .attr("transform", "translate(0," + height + ")")
       .attr('id','xaxis')
       .call(d3.axisBottom(xx).ticks(10).tickFormat(d3.timeFormat("%Y")));
-
     axes_labels(xAxis,yAxis,'Date', 'Percent (%)');
     
   }
-
   addInitialAxes('date', 'unrate');
-       
-
-
   function fade_line(line_id) {
   // Fade out.
   // https://groups.google.com/forum/#!msg/d3-js/nkIpeZ60Sas/RZEIhmrsI0cJ
   	d3.select(line_id) //#emp_line
-  		.style("opacity", 1)
-  		.transition().duration(400).style("opacity", 0);
-
+  	   .style("opacity", 1)
+  	   .transition().duration(400).style("opacity", 0);
     };
 
   function fadeAxis(old_axis_id, new_axis_id, new_series){
-
     yy.domain([d3.min(data, function(d) { return d[new_series]; }) - 
       how_far_below_min_for_y_scale*d3.min(data, function(d) { return d[new_series]; }), 
       d3.max(data, function(d) { return d[new_series]; })]);
-
   	d3.select("body")
 	    .select('#'+old_axis_id) // change out the old y axis
 	    .attr("id", new_axis_id) //give a new id tag to the new axis
 	    .transition()
 	    .duration(transitionTime)
-	    .call(d3.axisLeft().scale(yy));
+	    .call(d3.axisLeft().tickFormat(percentFormat).scale(yy));
   };
 
   function change_slide_title(new_title){
@@ -277,36 +260,48 @@ d3.csv("employment.csv", function(error, data) {
 
 // On right arrow key, progress thru story. 
    function story(){
+    // Move forward.
+    // Give option to see all so far?
    		if (count == 0 ) {
    			// Improve our ability to go backwards through story.
-
-			// addUERightAxis(); // Add right axis.
-
-			// y.domain([0, d3.max(data, function(d) { return d.unrate; })]);
-			//   // Add the Y Axis
-			// svg.append("g")
-			// 	.attr('id', 'yaxis')
-			// 	.call(d3.axisLeft().scale(y));
+      change_slide_title('The unemployment rate has recovered nicely since the financial crisis.');
       fade_line('lfpr_line');
 			draw_line(data, 'date', 'unrate', 'steelblue', 'emp_line'); 
-
-			// d3.select('#lfpr_axis').remove();
-			// d3.select('#lfpr_line').remove();
   		};
   		if (count == 1 ) {
-    		fade_line('#emp_line');
-        fadeAxis(old_axis_id = 'unemployment_axis', new_axis_id = 'lfpr_axis', new_series = 'notinLF');
-        change_slide_title('Lack of labor force participation, however, has been rising at the same time.');
-        draw_line(data, 'date', 'lfpr', 'darkred', 'lfpr_line'); 
-    		// addLFPR();
+    		  fade_line('#emp_line');
+        //   if (d3.select('#emp_line').empty()) {
+        //   console.log('Nothing to do.')
+        // }
+        // else {
+        //   fade_line('#emp_line');
+        // }
+	        fadeAxis(old_axis_id = 'unemployment_axis', new_axis_id = 'lfpr_axis', new_series = 'notinLF');
+	        change_slide_title('Lack of labor force participation, however, has been rising at the same time.');
+	        draw_line(data, 'date', 'notinLF', 'darkred', 'lfpr_line'); 
   		};
   		if (count == 2){
-  		// 	// Split LFPR line into male and female lfpr
+  		// Split LFPR line into male and female lfpr
       fade_line('#lfpr_line');
-      fadeAxis(old_axis_id = 'lfpr_axis', new_axis_id = 'm_not_lfpr_axis', new_series = 'm_not_lfpr');
-      draw_line(data=data, x='date', y='m_not_lfpr', color='purple', line_id = 'm_not_lfpr_line');
-      change_slide_title('For men, in particular, the number out of the labor force has seen a sharp rise.');
-      };
+		    // if (d3.select('#emp_line').empty()) {
+      //     console.log('Nothing to do.')
+      //   }
+      //   else {
+      //     fade_line('#lfpr_line');
+      //   }
+      //   d3.select("#emp_line").remove(); // Get rid of emp line element from count 0 so we don't redraw.
+		    fadeAxis(old_axis_id = 'lfpr_axis', new_axis_id = 'm_not_lfpr_axis', new_series = 'm_not_lfpr');
+		    draw_line(data=data, x='date', y='m_not_lfpr', color='purple', line_id = 'm_not_lfpr_line');
+		    change_slide_title('For men, in particular, the number out of the labor force has seen a sharp rise.');
+      	};
+      	if (count == 3){
+  		// Split LFPR line into male and female lfpr
+		    fade_line('#m_not_lfpr_line');
+		    fadeAxis(old_axis_id = 'm_not_lfpr_axis', new_axis_id = 'w_not_lfpr_axis', new_series = 'w_not_lfpr');
+		    draw_line(data=data, x='date', y='w_not_lfpr', color='green', line_id = 'w_not_lfpr_line');
+		    change_slide_title('For women...');
+      	};
+
   	};
 
 
@@ -329,14 +324,15 @@ d3.select("body")
         };
     });
 
-
-
-// var count = 0;
 var arrow = grid.append("div").attr("id", "arrow").on("click", function() {
-      console.log('clicked arrrow')
       count+=1;
       story(count);
 }); // Add arrow to control animations.
+
+leftarrow.on("click", function() {
+      count-=1;
+      story(count);
+}); // Add arrow to control animations.;
 
 // Close d3.csv.
 });
