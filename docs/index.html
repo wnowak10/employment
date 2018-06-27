@@ -29,6 +29,40 @@ unexpected errors...check this. -->
   z-index: 11; /* 1px higher than the overlay layer */
   word-wrap: break-word;
 }
+
+
+#leftarrow {
+    border-right:15px solid black;
+    border-bottom:15px solid black;
+    width:50px;
+    height:50px;
+    transform: rotate(135deg);
+    margin-top:40px;
+    margin-left:40px; /* move away from left window edge slightly */
+}
+
+#leftarrow {
+  display: flex;
+  margin-top: auto;
+  /*margin-left: auto;*/
+}
+
+#arrow {
+    border-right:15px solid black;
+    border-bottom:15px solid black;
+    width:50px;
+    height:50px;
+    transform: rotate(-45deg);
+    margin-top:40px;
+    margin-left:40px;
+}
+
+#arrow {
+  display: flex;
+  margin-top: auto;
+}
+
+
 </style>
 </head>
 
@@ -93,6 +127,11 @@ var margin = {top: 20, right: 20, bottom: 50, left: 100},
 var parseTime = d3.timeParse("%Y-%m-%d");
 transitionTime = 2500; // What feels best? Should it always be the same?
 how_far_below_min_for_y_scale = .1
+
+
+var leftarrow = grid.append("div").attr("id", "leftarrow");
+
+
 
 // SVG element contains our main chart.
 var svg = grid.append("div").append("svg")
@@ -191,7 +230,7 @@ d3.csv("employment.csv", function(error, data) {
     var xAxis = svg.append("g")
       .attr("transform", "translate(0," + height + ")")
       .attr('id','xaxis')
-      .call(d3.axisBottom(xx).ticks(5).tickFormat(d3.timeFormat("%Y")));
+      .call(d3.axisBottom(xx).ticks(10).tickFormat(d3.timeFormat("%Y")));
 
     axes_labels(xAxis,yAxis,'Date', 'Percent (%)');
     
@@ -289,6 +328,16 @@ d3.select("body")
             story(count);   
         };
     });
+
+
+
+// var count = 0;
+var arrow = grid.append("div").attr("id", "arrow").on("click", function() {
+      console.log('clicked arrrow')
+      count+=1;
+      story(count);
+}); // Add arrow to control animations.
+
 // Close d3.csv.
 });
 
