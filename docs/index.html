@@ -118,7 +118,7 @@ grid
   .attr("class", "row_divs")
   .append("h1")
   .attr("id", "title_text")
-  .text("The unemployment rate has recovered nicely since the financial crisis.");
+  .text("The unemployment rate has recovered since the financial crisis.");
 
 // Global variables, setup, housekeeping.
 var margin = {top: 20, right: 20, bottom: 50, left: 100},
@@ -165,31 +165,77 @@ d3.csv("employment.csv", function(error, data) {
     d.w_not_lfpr = +d.w_not_lfpr/100;
   });
 
-  function draw_line(data, x, y, color, line_id){
+  // Functions:
+
+  // - draw_lines
+  // -- input x and list of y value series to draw
+
+  // - draw_axes
+
+  function draw_lines(data, x, y, color, line_id){
+    // y can be array of y values.
+
+    // Range (extent) of dates (or x vales)
     xx.domain(d3.extent(data, function(d) { return d[x]; }));
-    yy.domain([d3.min(data, function(d) { return d[y]; }) - 
+
+    if (y.length > 1) {
+      // Draw lines on properly scaled y axis
+      min = Math.pow(10, 1000) // Big positive number as initial min. 
+      max = Math.pow(-10, 1001) // Big negative number as initial max. 
+      // Anything greater than this will then become max.
+      for (i = 0; i < y.length; i++){
+        local_min = d3.min(data, function(d) { return d[y[i]]; })
+        if (local_min < min){
+          min = local_min;
+        }
+        local_max = d3.max(data, function(d) { return d[y[i]]; })
+        if (local_max > max){
+          max = local_max;
+        }
+      }
+      yy.domain([.75*min, 1.1*max])
+    }
+    else {  
+      yy.domain([d3.min(data, function(d) { return d[y]; }) - 
       how_far_below_min_for_y_scale*d3.min(data, function(d) { return d[y]; }), 
         d3.max(data, function(d) { return d[y]; })]);
-    path = svg.append("path")
+    };
+
+    for (i = 0; i < y.length; i++) { 
+      path = svg.append("path")
           .datum(data)
           .attr("fill", "none")
           .attr("id", line_id)
-          .attr("stroke", color)
+          .attr("stroke", color[i])
           .attr("stroke-linejoin", "round")
           .attr("stroke-linecap", "round")
           .attr("stroke-width", 2.5)
           .attr("d", d3.line()
             .x(function(d) { return xx(d[x]); })
-            .y(function(d) { return yy(d[y]); }));
+            .y(function(d) { return yy(d[y[i]]); }));
 
-    // Mechanism for animating line path left to right.
-    totalLength = path.node().getTotalLength();
-    path
-      .attr("stroke-dasharray", totalLength + " " + totalLength)
-      .attr("stroke-dashoffset", totalLength)
-      .transition()
-      .duration(transitionTime)
-      .attr("stroke-dashoffset", 0);
+      // Mechanism for animating line path left to right.
+      totalLength = path.node().getTotalLength();
+      path
+        .attr("stroke-dasharray", totalLength + " " + totalLength)
+        .attr("stroke-dashoffset", totalLength)
+        .transition()
+        .duration(transitionTime)
+        .attr("stroke-dashoffset", 0);
+    }
+
+  };
+
+  function split_line(initial_line_ids, list_of_new_lines){
+    colors = ['red', 'green']
+    console.log('list_of_new_lines', list_of_new_lines[1])
+    for (i = 0; i < list_of_new_lines.length; i++) { 
+      d3.select('#'+initial_line_ids[i]).transition().duration(1000).delay(1000).attr("d", d3.line()
+            .x(function(d) { return xx(d['date']); })
+            .y(function(d) { return yy(d[list_of_new_lines[i]]); }))
+      .attr('stroke', colors[i])
+      .attr('id', list_of_new_lines[i]);
+    }
   };
 
   // Add initial axes.
@@ -238,20 +284,33 @@ d3.csv("employment.csv", function(error, data) {
   // Fade out.
   // https://groups.google.com/forum/#!msg/d3-js/nkIpeZ60Sas/RZEIhmrsI0cJ
     d3.select(line_id) //#emp_line
-  	 .style("opacity", 1)
-  	 .transition().duration(400).style("opacity", 0);
+     .style("opacity", 1)
+     .transition().duration(400).style("opacity", 0);
     };
 
   function fadeAxis(old_axis_id, new_axis_id, new_series){
-    yy.domain([d3.min(data, function(d) { return d[new_series]; }) - 
-      how_far_below_min_for_y_scale*d3.min(data, function(d) { return d[new_series]; }), 
-        d3.max(data, function(d) { return d[new_series]; })]);
-  	d3.select("body")
-	    .select('#'+old_axis_id) // change out the old y axis
-	    .attr("id", new_axis_id) //give a new id tag to the new axis
-	    .transition()
-	    .duration(transitionTime)
-	    .call(d3.axisLeft().tickFormat(percentFormat).scale(yy));
+    // yy.domain([.25,.45]);
+    if (new_series.length > 1) {
+      min_of_series_0 = d3.min(data, function(d) { return d[new_series[0]]; })
+      min_of_series_1 = d3.min(data, function(d) { return d[new_series[1]]; })
+      max_of_series_0 = d3.max(data, function(d) { return d[new_series[0]]; })
+      max_of_series_1 = d3.max(data, function(d) { return d[new_series[1]]; })
+      min = Math.min(min_of_series_0, min_of_series_1)
+      max = Math.max(max_of_series_0, max_of_series_1)
+      console.log(min_of_series_0, min_of_series_1, max_of_series_0, max_of_series_1, min, max)
+      yy.domain([min, max])
+    }
+    else {
+        yy.domain( [d3.min(data, function(d) { return d[new_series]; }) 
+                   - how_far_below_min_for_y_scale*d3.min(data, function(d) { return d[new_series]; }), 
+                    1.1*d3.max(data, function(d) { return d[new_series]; })]);
+    };
+    d3.select("body")
+      .select('#'+old_axis_id) // change out the old y axis
+      .attr("id", new_axis_id) //give a new id tag to the new axis
+      .transition()
+      .duration(transitionTime)
+      .call(d3.axisLeft().tickFormat(percentFormat).scale(yy));
   };
 
   function change_slide_title(new_title){
@@ -268,24 +327,83 @@ d3.csv("employment.csv", function(error, data) {
 // On right arrow key, progress thru story. 
   function story(){
     if (count == 0 ) {
-      change_slide_title('The unemployment rate has recovered nicely since the financial crisis.');
+      change_slide_title('The unemployment rate has recovered since the financial crisis.');
       fade_line('lfpr_line');
-    	draw_line(data, 'date', 'unrate', 'steelblue', 'emp_line'); 
+      draw_lines(data, 'date', ['unrate'], ['steelblue'], 'emp_line'); 
     };
-	  if (count == 1 ) {
-		  fade_line('#emp_line');
+    if (count == 1 ) {
+      // d3.select('svg').remove();
+      change_slide_title('This story is incomplete, however.');
+    };
+    if (count == 2 ) {
+      fade_line('#emp_line');
     //   if (d3.select('#emp_line').empty()) {
     //   console.log('Nothing to do.')
     // }
     // else {
     //   fade_line('#emp_line');
     // }
-      fadeAxis(old_axis_id = 'unemployment_axis', new_axis_id = 'lfpr_axis', new_series = 'notinLF');
-      change_slide_title('Lack of labor force participation, however, has been rising at the same time.');
-      draw_line(data, 'date', 'notinLF', 'darkred', 'lfpr_line'); 
-	  };
-    if (count == 2){
-      fade_line('#lfpr_line');
+      fadeAxis(old_axis_id = 'unemployment_axis', new_axis_id = 'lfpr_axis', new_series = ['notinLF']);
+      change_slide_title('The percent of Americans out of the labor force has been rising sharply.');
+      draw_lines(data, 'date', ['notinLF'], ['darkred'], 'lfpr_line'); 
+      draw_lines(data, 'date', ['notinLF'], ['darkred'], 'lfpr_line2'); 
+
+    };
+    if (count == 3){
+     
+      // d3.select('#lfpr_line').transition().duration(1000).delay(1000).attr("d",  d3.line()
+      //       .x(function(d) { return xx(d['date']); })
+      //       .y(function(d) { return yy(d['m_not_lfpr']); }));
+      fadeAxis(old_axis_id = 'lfpr_axis', new_axis_id = 'm_not_lfpr_axis', new_series = ['m_not_lfpr','w_not_lfpr']);
+      split_line(['lfpr_line', 'lfpr_line2'], ['m_not_lfpr', 'w_not_lfpr']);
+      change_slide_title('In particular, this rise has been steeper for men.');
+    
+      svg.append("text")
+    .attr("transform", "translate("+width*.9+",60)")
+    .attr("dy", ".35em")
+    .attr("text-anchor", "start")
+    .style("fill", "green")
+    .attr('id','women_text')
+    .transition()
+    .delay(transitionTime)
+    .text("Women");
+
+    svg.append("text")
+    .attr("transform", "translate("+width*.9+",320)")
+    .attr("dy", ".35em")
+    .transition()
+    .delay(transitionTime)
+    // .duration(3000)
+    .attr("text-anchor", "start")
+    .style("fill", "red")
+    .text("Men");
+
+    };
+    if (count == 4){
+      d3.select('#women_text')
+     .style("opacity", 1)
+     .transition().duration(400).style("opacity", 0);
+
+      d3.select('#women_text').remove();
+
+
+     d3.select('#w_not_lfpr') //#emp_line
+     .style("opacity", 1)
+     .transition().duration(400).style("opacity", 0);
+
+   d3.select('#w_not_lfpr').remove();
+
+
+    fadeAxis(old_axis_id = 'm_not_lfpr_axis', new_axis_id = 'm_not_lfpr_axis2', new_series = ['m_not_lfpr']);
+
+     d3.select('#m_not_lfpr').transition().duration(1000).delay(1000).attr("d", d3.line()
+            .x(function(d) { return xx(d['date']); })
+            .y(function(d) { return yy(d['m_not_lfpr']); }))
+
+     // d3.select('#w_not_lfpr').transition().duration(transitionTime).remove();
+      // d3.select('#women_text').transition().duration(transitionTime).remove();
+      change_slide_title('Even after the recession\'s end, this rise has not stopped.');
+      // fade_line('#lfpr_line');
     // if (d3.select('#emp_line').empty()) {
     //     console.log('Nothing to do.')
     //   }
@@ -293,28 +411,30 @@ d3.csv("employment.csv", function(error, data) {
     //     fade_line('#lfpr_line');
     //   }
     //   d3.select("#emp_line").remove(); // Get rid of emp line element from count 0 so we don't redraw.
-      fadeAxis(old_axis_id = 'lfpr_axis', new_axis_id = 'm_not_lfpr_axis', new_series = 'm_not_lfpr');
-      draw_line(data=data, x='date', y='m_not_lfpr', color='purple', line_id = 'm_not_lfpr_line');
-      change_slide_title('For men, in particular, the number out of the labor force has seen a sharp rise.');
+      // fadeAxis(old_axis_id = 'lfpr_axis', new_axis_id = 'm_not_lfpr_axis', new_series = ['m_not_lfpr','w_not_lfpr']);
+      // draw_lines(data=data, x='date', y=['m_not_lfpr', 'w_not_lfpr'], color=['purple','green'], line_id = 'm_not_lfpr_line');
+      // draw_line(data=data, x='date', y='w_not_lfpr', color='green', line_id = 'w_not_lfpr_line'), all_lines = ['m_not_lfpr', 'w_not_lfpr'];
+
+      // change_slide_title('For men, in particular, the number out of the labor force has seen a sharp rise.');
     };
-    if (count == 3){
-	// Split LFPR line into male and female lfpr
-      fade_line('#m_not_lfpr_line');
-      fadeAxis(old_axis_id = 'm_not_lfpr_axis', new_axis_id = 'w_not_lfpr_axis', new_series = 'w_not_lfpr');
-      draw_line(data=data, x='date', y='w_not_lfpr', color='green', line_id = 'w_not_lfpr_line');
-      change_slide_title('For women...');
-    };
+ //    if (count == 3){
+  // // Split LFPR line into male and female lfpr
+ //      fade_line('#m_not_lfpr_line');
+ //      fadeAxis(old_axis_id = 'm_not_lfpr_axis', new_axis_id = 'w_not_lfpr_axis', new_series = 'w_not_lfpr');
+ //      draw_line(data=data, x='date', y='w_not_lfpr', color='green', line_id = 'w_not_lfpr_line');
+ //      change_slide_title('For women...');
+ //    };
   };
 
-  draw_line(data, 'date', 'unrate', 'steelblue', 'emp_line'); 
+  draw_lines(data, 'date', ['unrate'], ['steelblue'], 'emp_line'); 
 
   var count = 0;
 
   // Control story with arrow keys.
   d3.select("body")
-	 .on("keydown", function(e) { 
+   .on("keydown", function(e) { 
       d3.event.preventDefault();  // Prevent scrolling with arrow key.
-    	if (d3.event.keyCode == 39) { // right arrow  
+      if (d3.event.keyCode == 39) { // right arrow  
           count +=1; // progress story
           story(count);   
       };
