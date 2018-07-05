@@ -125,7 +125,7 @@ var margin = {top: 20, right: 20, bottom: 50, left: 100},
   width = 960 - margin.left - margin.right,
   height = 500 - margin.top - margin.bottom;
 var parseTime = d3.timeParse("%Y-%m-%d");
-transitionTime = 2500; // What feels best? Should it always be the same?
+transitionTime = 3000; // What feels best? Should it always be the same?
 how_far_below_min_for_y_scale = .1 // We don't want y axis to start 
                                    // at the minimum value, so use this
                                    // parameter to extend axis a bit below 
@@ -228,7 +228,6 @@ d3.csv("employment.csv", function(error, data) {
 
   function split_line(initial_line_ids, list_of_new_lines){
     colors = ['red', 'green']
-    console.log('list_of_new_lines', list_of_new_lines[1])
     for (i = 0; i < list_of_new_lines.length; i++) { 
       d3.select('#'+initial_line_ids[i]).transition().duration(1000).delay(1000).attr("d", d3.line()
             .x(function(d) { return xx(d['date']); })
@@ -297,7 +296,6 @@ d3.csv("employment.csv", function(error, data) {
       max_of_series_1 = d3.max(data, function(d) { return d[new_series[1]]; })
       min = Math.min(min_of_series_0, min_of_series_1)
       max = Math.max(max_of_series_0, max_of_series_1)
-      console.log(min_of_series_0, min_of_series_1, max_of_series_0, max_of_series_1, min, max)
       yy.domain([min, max])
     }
     else {
@@ -338,7 +336,6 @@ d3.csv("employment.csv", function(error, data) {
     if (count == 2 ) {
       fade_line('#emp_line');
     //   if (d3.select('#emp_line').empty()) {
-    //   console.log('Nothing to do.')
     // }
     // else {
     //   fade_line('#emp_line');
@@ -396,13 +393,55 @@ d3.csv("employment.csv", function(error, data) {
 
     fadeAxis(old_axis_id = 'm_not_lfpr_axis', new_axis_id = 'm_not_lfpr_axis2', new_series = ['m_not_lfpr']);
 
-     d3.select('#m_not_lfpr').transition().duration(1000).delay(1000).attr("d", d3.line()
-            .x(function(d) { return xx(d['date']); })
+     d3.select('#m_not_lfpr').transition().duration(transitionTime).attr("d", d3.line() //.delay(1000)
+            .x(function(d) { 
+              return xx(d['date']); })
             .y(function(d) { return yy(d['m_not_lfpr']); }))
 
      // d3.select('#w_not_lfpr').transition().duration(transitionTime).remove();
       // d3.select('#women_text').transition().duration(transitionTime).remove();
       change_slide_title('Even after the recession\'s end, this rise has not stopped.');
+
+      // var today = new Date();
+      var recessionStart = new Date('February 1, 2008');
+      var recessionEnd = new Date('February 1, 2010');
+
+      var area = d3.area()
+          .x(function(d){ return xx(d.date); })
+          .y0(function(d) { return yy(d['m_not_lfpr']); })
+          .y1(height);
+          // .y0(height)
+          // .y1(function(d) { return yy(d['m_not_lfpr']); });
+          console.log(data)
+
+      svg.append("path")
+          .datum(data.filter(function(d){return recessionStart < d['date'] && d['date'] < recessionEnd;}))
+          // .datum(data)
+          .attr("fill", "LightCoral")
+          .attr("stroke-linejoin", "round")
+          .attr("stroke-linecap", "round")
+          .attr("stroke-width", 2.5)
+          .style("opacity", 0)
+     	.transition().duration(transitionTime).style("opacity", 1)
+     //      .attr('transform', 'translate(0, '+height+')') // <---- here
+    	// .transition()
+	    // // .ease('linear') //, 1, .3)
+	    // .duration(transitionTime)
+	    // .attr('transform', 'translate(0, 0)') // <---- then here
+          .attr("d", area);
+
+      // d3.line().x([xx(today), xx(today)]).y([yy(0), yy(1)]);
+
+      // svg.append("line")
+      //   .attr("x1", xx(today))  //<<== change your code here
+      //   .attr("y1", 0)
+      //   .attr("x2", xx(today))  //<<== and here
+      //   .attr("y2", 1)
+      //   .attr("id", "vertical line")
+      //   .style("stroke-width", 2)
+      //   .style("stroke", "red")
+      //   .style("fill", "black");
+
       // fade_line('#lfpr_line');
     // if (d3.select('#emp_line').empty()) {
     //     console.log('Nothing to do.')
