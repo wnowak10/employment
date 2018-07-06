@@ -1,41 +1,5 @@
 <style type="text/css">
 
-
-
-/* Arrow shape, orientiation, styling*/
-
-#leftarrow {
-    border-right:15px solid black;
-    border-bottom:15px solid black;
-    width:50px;
-    height:50px;
-    transform: rotate(135deg);
-    margin-top:40px;
-    margin-left:40px; /* move away from left window edge slightly */
-}
-
-#leftarrow {
-  display: flex;
-  margin-top: auto;
-  /*margin-left: auto;*/
-}
-
-#arrow {
-    border-right:15px solid black;
-    border-bottom:15px solid black;
-    width:50px;
-    height:50px;
-    transform: rotate(-45deg);
-    margin-top:40px;
-    margin-left:40px;
-}
-
-#arrow {
-  display: flex;
-  margin-top: auto;
-}
-
-
 /*
 Overall page layout
 */

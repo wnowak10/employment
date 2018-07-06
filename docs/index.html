@@ -36,6 +36,39 @@ Overlays
   word-wrap: break-word;
 }
 
+/* Arrow shape, orientiation, styling*/
+
+#leftarrow {
+    border-right:15px solid black;
+    border-bottom:15px solid black;
+    width:50px;
+    height:50px;
+    transform: rotate(135deg);
+    margin-top:40px;
+    margin-left:40px; /* move away from left window edge slightly */
+}
+
+#leftarrow {
+  display: flex;
+  margin-top: auto;
+  /*margin-left: auto;*/
+}
+
+#arrow {
+    border-right:15px solid black;
+    border-bottom:15px solid black;
+    width:50px;
+    height:50px;
+    transform: rotate(-45deg);
+    margin-top:40px;
+    margin-left:40px;
+}
+
+#arrow {
+  display: flex;
+  margin-top: auto;
+}
+
 </style>
 </head>
 
@@ -143,16 +176,15 @@ d3.csv("employment.csv", function(error, data) {
   });
 
   data2.forEach(function(d) {
+    d.year = parseYear(d.year);
     d.lessHS = +d.lessHS_adj/100;
     d.HS = +d.HS_adj/100;
     d.some_college = +d.some_college_adj/100;
     d.AD = +d.AD_adj/100;
     d.BD = +d.BD_adj/100;
-    d.year = parseYear(d.year);
   });
 
   addInitialAxes(xx, yy, data, 'date', 'unrate');
-
 
 // On right arrow key, progress thru story. 
   function story(){
@@ -171,25 +203,23 @@ d3.csv("employment.csv", function(error, data) {
       draw_lines(data, 'date', ['notinLF'], xscale = xx, yy, ['darkred'], ['lfpr_line']); 
       draw_lines(data, 'date', ['notinLF'],  xx, yy,['darkred'], ['lfpr_line2']); 
     };
-    if (count == 3){
+    if (count == 3) {
       fadeAxis(data, yy, old_axis_id = 'lfpr_axis', new_axis_id = 'm_not_lfpr_axis', new_series = ['m_not_lfpr','w_not_lfpr']);
       split_line(['lfpr_line', 'lfpr_line2'], ['m_not_lfpr', 'w_not_lfpr'], xx, yy);
       change_slide_title('In particular, this rise has been steeper for men.');
       label_line(data, 'w_not_lfpr', yy, 'women_text', 'Women', 'green');	     
       label_line(data, 'm_not_lfpr', yy, 'men_text', 'Men', 'LightCoral');
     };
-    if (count == 4){
+    if (count == 4) {
     	// Fade and remove women
-    	// fade_line('#women_text');
     	fade_line('#w_not_lfpr'); // This doesn't fade properly?
     	d3.select('#women_text').remove();
     	d3.select('#w_not_lfpr').remove();
     	fadeAxis(data, yy, old_axis_id = 'm_not_lfpr_axis', new_axis_id = 'm_not_lfpr_axis2', new_series = ['m_not_lfpr']);
 		
-		d3.select('#m_not_lfpr').transition().duration(transitionTime).attr("d", d3.line() //.delay(1000)
-            .x(function(d) { 
-              return xx(d['date']); })
-            .y(function(d) { return yy(d['m_not_lfpr']); }))
+		  d3.select('#m_not_lfpr').transition().duration(transitionTime).attr("d", d3.line() //.delay(1000)
+        .x(function(d) { return xx(d['date']); })
+        .y(function(d) { return yy(d['m_not_lfpr']); }))
 
       change_slide_title('Even after the recession\'s end, this rise has not stopped.');
 
@@ -208,7 +238,8 @@ d3.csv("employment.csv", function(error, data) {
           .attr("stroke-linecap", "round")
           .attr("stroke-width", 2.5)
           .style("opacity", 0)
-     	  .transition().duration(transitionTime).style("opacity", 1)
+     	    .transition()
+          .duration(transitionTime).style("opacity", 1)
           .attr("d", area);
     };
     if (count == 5){
