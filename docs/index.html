@@ -167,11 +167,6 @@ d3.csv("employment.csv", function(error, data) {
 
   // Functions:
 
-  // - draw_lines
-  // -- input x and list of y value series to draw
-
-  // - draw_axes
-
   function draw_lines(data, x, y, color, line_id){
     // y can be array of y values.
 
@@ -203,33 +198,42 @@ d3.csv("employment.csv", function(error, data) {
 
     for (i = 0; i < y.length; i++) { 
       path = svg.append("path")
-          .datum(data)
-          .attr("fill", "none")
-          .attr("id", line_id)
-          .attr("stroke", color[i])
-          .attr("stroke-linejoin", "round")
-          .attr("stroke-linecap", "round")
-          .attr("stroke-width", 2.5)
-          .attr("d", d3.line()
-            .x(function(d) { return xx(d[x]); })
-            .y(function(d) { return yy(d[y[i]]); }));
+	      .datum(data)
+	      .attr("fill", "none")
+	      .attr("id", line_id)
+	      .attr("stroke", color[i])
+	      .attr("stroke-linejoin", "round")
+	      .attr("stroke-linecap", "round")
+	      .attr("stroke-width", 2.5)
+	      .attr("d", d3.line()
+	        .x(function(d) { return xx(d[x]); })
+	        .y(function(d) { return yy(d[y[i]]); }));
 
       // Mechanism for animating line path left to right.
       totalLength = path.node().getTotalLength();
       path
-        .attr("stroke-dasharray", totalLength + " " + totalLength)
-        .attr("stroke-dashoffset", totalLength)
-        .transition()
-        .duration(transitionTime)
-        .attr("stroke-dashoffset", 0);
+      	  .attr("stroke-dasharray", totalLength + " " + totalLength)
+          .attr("stroke-dashoffset", totalLength)
+          .transition()
+          .duration(transitionTime)
+          .attr("stroke-dashoffset", 0);
     }
 
   };
 
   function split_line(initial_line_ids, list_of_new_lines){
-    colors = ['red', 'green']
+  	// If you want to split one line, you need to make
+  	// TWO overlapping lines with different ids. We then 
+  	// select each and move it to a new line.
+
+  	// Make these nicer colors!
+    colors = ['LightCoral', 'green']
     for (i = 0; i < list_of_new_lines.length; i++) { 
-      d3.select('#'+initial_line_ids[i]).transition().duration(1000).delay(1000).attr("d", d3.line()
+      d3.select('#'+initial_line_ids[i])
+      .transition()
+      .duration(1000)
+      .delay(1000)
+      .attr("d", d3.line()
             .x(function(d) { return xx(d['date']); })
             .y(function(d) { return yy(d[list_of_new_lines[i]]); }))
       .attr('stroke', colors[i])
@@ -237,9 +241,9 @@ d3.csv("employment.csv", function(error, data) {
     }
   };
 
-  // Add initial axes.
-
   function axes_labels(xAxis, yAxis, x_axis_label, y_axis_label){
+  	// Function to label x and y axis.
+
     // Axes labels:
     // X axis label:
     xAxis.append("text")             
@@ -260,7 +264,11 @@ d3.csv("employment.csv", function(error, data) {
 
   };
 
+    // Add initial axes.
+
   function addInitialAxes(x_axis_series, y_axis_series){
+  	// This draws axes initially.
+
     xx.domain(d3.extent(data, function(d) { return d[x_axis_series]; }));
     yy.domain([d3.min(data, function(d) { return d[y_axis_series]; }) - 
       how_far_below_min_for_y_scale*d3.min(data, function(d) { return d[y_axis_series]; }), 
@@ -284,12 +292,14 @@ d3.csv("employment.csv", function(error, data) {
   // https://groups.google.com/forum/#!msg/d3-js/nkIpeZ60Sas/RZEIhmrsI0cJ
     d3.select(line_id) //#emp_line
      .style("opacity", 1)
-     .transition().duration(400).style("opacity", 0);
-    };
+     .transition().duration(transitionTime).style("opacity", 0);
+  };
 
   function fadeAxis(old_axis_id, new_axis_id, new_series){
-    // yy.domain([.25,.45]);
     if (new_series.length > 1) {
+      // If we are fading an old axis and adding multiple new lines,
+      // we find the minimum and maximum of all these values and then set the 
+      // axis appropriately to fit everything.
       min_of_series_0 = d3.min(data, function(d) { return d[new_series[0]]; })
       min_of_series_1 = d3.min(data, function(d) { return d[new_series[1]]; })
       max_of_series_0 = d3.max(data, function(d) { return d[new_series[0]]; })
@@ -321,6 +331,22 @@ d3.csv("employment.csv", function(error, data) {
      .duration(transitionTime/2)
      .style("opacity", 1);
   };
+  function label_line(line_id, label_id, label, color){
+  	// Add text below? a line to serve purpose of 
+  	// a legend.
+  	recent_value = data[data.length-1][line_id]
+  	console.log(recent_value);
+  	// Get the last y value in the array
+  	 svg.append("text")
+	    .attr("transform", "translate("+width*.9+","+yy(recent_value*.95)+")")
+	    .attr("dy", ".35em")
+	    .attr("text-anchor", "start")
+	    .style("fill", color)
+	    .attr('id',label_id)
+	    .transition()
+	    .delay(transitionTime)
+	    .text(label);
+  }
 
 // On right arrow key, progress thru story. 
   function story(){
@@ -330,70 +356,31 @@ d3.csv("employment.csv", function(error, data) {
       draw_lines(data, 'date', ['unrate'], ['steelblue'], 'emp_line'); 
     };
     if (count == 1 ) {
-      // d3.select('svg').remove();
       change_slide_title('This story is incomplete, however.');
     };
     if (count == 2 ) {
       fade_line('#emp_line');
-    //   if (d3.select('#emp_line').empty()) {
-    // }
-    // else {
-    //   fade_line('#emp_line');
-    // }
       fadeAxis(old_axis_id = 'unemployment_axis', new_axis_id = 'lfpr_axis', new_series = ['notinLF']);
       change_slide_title('The percent of Americans out of the labor force has been rising sharply.');
       draw_lines(data, 'date', ['notinLF'], ['darkred'], 'lfpr_line'); 
       draw_lines(data, 'date', ['notinLF'], ['darkred'], 'lfpr_line2'); 
-
     };
     if (count == 3){
-     
-      // d3.select('#lfpr_line').transition().duration(1000).delay(1000).attr("d",  d3.line()
-      //       .x(function(d) { return xx(d['date']); })
-      //       .y(function(d) { return yy(d['m_not_lfpr']); }));
       fadeAxis(old_axis_id = 'lfpr_axis', new_axis_id = 'm_not_lfpr_axis', new_series = ['m_not_lfpr','w_not_lfpr']);
       split_line(['lfpr_line', 'lfpr_line2'], ['m_not_lfpr', 'w_not_lfpr']);
       change_slide_title('In particular, this rise has been steeper for men.');
-    
-      svg.append("text")
-    .attr("transform", "translate("+width*.9+",60)")
-    .attr("dy", ".35em")
-    .attr("text-anchor", "start")
-    .style("fill", "green")
-    .attr('id','women_text')
-    .transition()
-    .delay(transitionTime)
-    .text("Women");
-
-    svg.append("text")
-    .attr("transform", "translate("+width*.9+",320)")
-    .attr("dy", ".35em")
-    .transition()
-    .delay(transitionTime)
-    // .duration(3000)
-    .attr("text-anchor", "start")
-    .style("fill", "red")
-    .text("Men");
-
+      label_line('w_not_lfpr', 'women_text', 'Women', 'green');	     
+      label_line('m_not_lfpr', 'men_text', 'Men', 'LightCoral');
     };
     if (count == 4){
-      d3.select('#women_text')
-     .style("opacity", 1)
-     .transition().duration(400).style("opacity", 0);
-
-      d3.select('#women_text').remove();
-
-
-     d3.select('#w_not_lfpr') //#emp_line
-     .style("opacity", 1)
-     .transition().duration(400).style("opacity", 0);
-
-   d3.select('#w_not_lfpr').remove();
-
-
-    fadeAxis(old_axis_id = 'm_not_lfpr_axis', new_axis_id = 'm_not_lfpr_axis2', new_series = ['m_not_lfpr']);
-
-     d3.select('#m_not_lfpr').transition().duration(transitionTime).attr("d", d3.line() //.delay(1000)
+    	// Fade and remove women
+    	// fade_line('#women_text');
+    	fade_line('#w_not_lfpr'); // This doesn't fade properly?
+    	d3.select('#women_text').remove();
+    	d3.select('#w_not_lfpr').remove();
+    	fadeAxis(old_axis_id = 'm_not_lfpr_axis', new_axis_id = 'm_not_lfpr_axis2', new_series = ['m_not_lfpr']);
+		
+		d3.select('#m_not_lfpr').transition().duration(transitionTime).attr("d", d3.line() //.delay(1000)
             .x(function(d) { 
               return xx(d['date']); })
             .y(function(d) { return yy(d['m_not_lfpr']); }))
@@ -412,7 +399,6 @@ d3.csv("employment.csv", function(error, data) {
           .y1(height);
           // .y0(height)
           // .y1(function(d) { return yy(d['m_not_lfpr']); });
-          console.log(data)
 
       svg.append("path")
           .datum(data.filter(function(d){return recessionStart < d['date'] && d['date'] < recessionEnd;}))
