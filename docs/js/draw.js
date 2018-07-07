@@ -1,12 +1,19 @@
 // Functions:
 
-  function draw_lines(data, x, y, xscale, yscale, color, line_ids){
+  function draw_lines(data, x, y, xscale_type, yscale_type, color, line_ids){
     // y can be array of y values.
     // line_ids should be an array containing the ids we'll
     // give to each line.
 
-    // Range (extent) of dates (or x vales)
-    xscale.domain(d3.extent(data, function(d) { return d[x]; }));
+    // Range (extent) of dates (or x values)
+    if (xscale_type == 'time'){
+		var xscale = d3.scaleTime().range([0, width]);
+	    xscale.domain(d3.extent(data, function(d) { return d[x]; }));
+    };
+
+    if (yscale_type == 'linear'){
+		var yscale = d3.scaleLinear().range([height, 0]);
+    };
 
     if (y.length > 1) {
       // Draw lines on properly scaled y axis
@@ -120,37 +127,51 @@
     // Call axes_labels function to add labels.
     axes_labels(xAxis,yAxis,'Date', 'Percent (%)');
   }
-  function fade_line(line_id) {
+  function fade_object(line_id) {
   // Fade out.
   // https://groups.google.com/forum/#!msg/d3-js/nkIpeZ60Sas/RZEIhmrsI0cJ
     d3.select(line_id) //#emp_line
      .style("opacity", 1)
      .transition().duration(transitionTime).style("opacity", 0);
   };
-  function fadeAxis(data, yscale, old_axis_id, new_axis_id, new_series){
-    if (new_series.length > 1) {
+  function replace_axis(data, scale, old_axis_id, new_axis_id, new_series, type){
+    if (type == 'y'){
+    	if (new_series.length > 1) {
       // If we are fading an old axis and adding multiple new lines,
       // we find the minimum and maximum of all these values and then set the 
       // axis appropriately to fit everything.
+
+      // Should replace this with a for loop for element [i]
       min_of_series_0 = d3.min(data, function(d) { return d[new_series[0]]; })
       min_of_series_1 = d3.min(data, function(d) { return d[new_series[1]]; })
       max_of_series_0 = d3.max(data, function(d) { return d[new_series[0]]; })
       max_of_series_1 = d3.max(data, function(d) { return d[new_series[1]]; })
       min = Math.min(min_of_series_0, min_of_series_1)
       max = Math.max(max_of_series_0, max_of_series_1)
-      yscale.domain([min, max])
-    }
-    else {
-        yscale.domain( [d3.min(data, function(d) { return d[new_series]; }) 
+      scale.domain([min, max])
+      }
+      else {
+        scale.domain( [d3.min(data, function(d) { return d[new_series]; }) 
                    - how_far_below_min_for_y_scale*d3.min(data, function(d) { return d[new_series]; }), 
                     1.1*d3.max(data, function(d) { return d[new_series]; })]);
-    };
-    d3.select("body")
+      };
+      d3.select("body")
       .select('#'+old_axis_id) // change out the old y axis
       .attr("id", new_axis_id) //give a new id tag to the new axis
       .transition()
       .duration(transitionTime)
-      .call(d3.axisLeft().tickFormat(percentFormat).scale(yscale));
+      .call(d3.axisLeft().tickFormat(percentFormat).scale(scale));
+    }
+    if (type == 'x'){
+    	scale.domain(d3.extent(data, function(d) { return d[new_series]; }));
+    	d3.select("body")
+	      .select('#'+old_axis_id) // change out the old y axis
+	      .attr("id", new_axis_id) //give a new id tag to the new axis
+	      .transition()
+	      .duration(transitionTime)
+	      .call(d3.axisBottom().scale(scale));
+
+    }
   };
   function change_slide_title(new_title){
     d3.select("#title_text")

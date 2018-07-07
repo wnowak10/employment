@@ -178,6 +178,7 @@ d3.csv("employment.csv", function(error, data) {
 
   data2.forEach(function(d) {
     d.year = parseYear(d.year);
+    console.log(d.year)
     d.lessHS = +d.lessHS_adj/100;
     d.HS = +d.HS_adj/100;
     d.some_college = +d.some_college_adj/100;
@@ -191,21 +192,30 @@ d3.csv("employment.csv", function(error, data) {
   function story(){
     if (count == 0 ) {
       change_slide_title('The unemployment rate has recovered since the financial crisis.');
-      fade_line('lfpr_line');
-      draw_lines(data, 'date', ['unrate'], ['steelblue'], xx, yy, ['emp_line']); 
+      fade_object('lfpr_line');
+      draw_lines(data, 'date', ['unrate'], ['steelblue'], 'time', yscale_type = 'linear', ['emp_line']); 
     };
     if (count == 1 ) {
       change_slide_title('This story is incomplete, however.');
     };
     if (count == 2 ) {
-      fade_line('#emp_line');
-      fadeAxis(data, yy, old_axis_id = 'unemployment_axis', new_axis_id = 'lfpr_axis', new_series = ['notinLF']);
+      fade_object('#emp_line');
+      replace_axis(data, yy, 
+        old_axis_id = 'unemployment_axis', 
+        new_axis_id = 'lfpr_axis', 
+        new_series = ['notinLF'], 
+        type='y');
       change_slide_title('The percent of Americans out of the labor force has been rising sharply.');
-      draw_lines(data, 'date', ['notinLF'], xscale = xx, yy, ['darkred'], ['lfpr_line']); 
-      draw_lines(data, 'date', ['notinLF'],  xx, yy,['darkred'], ['lfpr_line2']); 
+      draw_lines(data, 'date', ['notinLF'],  xscale_type = 'time', yscale_type = 'linear', ['darkred'], ['lfpr_line']); 
+      draw_lines(data, 'date', ['notinLF'],  xscale_type = 'time', yscale_type = 'linear',['darkred'], ['lfpr_line2']); 
     };
     if (count == 3) {
-      fadeAxis(data, yy, old_axis_id = 'lfpr_axis', new_axis_id = 'm_not_lfpr_axis', new_series = ['m_not_lfpr','w_not_lfpr']);
+      replace_axis(data, 
+        yy, 
+        old_axis_id = 'lfpr_axis', 
+        new_axis_id = 'm_not_lfpr_axis', 
+        new_series = ['m_not_lfpr','w_not_lfpr'],
+        type='y');
       split_line(['lfpr_line', 'lfpr_line2'], ['m_not_lfpr', 'w_not_lfpr'], xx, yy);
       change_slide_title('In particular, this rise has been steeper for men.');
       label_line(data, 'w_not_lfpr', yy, 'women_text', 'Women', 'green');	     
@@ -213,10 +223,15 @@ d3.csv("employment.csv", function(error, data) {
     };
     if (count == 4) {
     	// Fade and remove women
-    	fade_line('#w_not_lfpr'); // This doesn't fade properly?
+    	fade_object('#w_not_lfpr'); // This doesn't fade properly?
     	d3.select('#women_text').remove();
     	d3.select('#w_not_lfpr').remove();
-    	fadeAxis(data, yy, old_axis_id = 'm_not_lfpr_axis', new_axis_id = 'm_not_lfpr_axis2', new_series = ['m_not_lfpr']);
+    	replace_axis(data, 
+        yy, 
+        old_axis_id = 'm_not_lfpr_axis', 
+        new_axis_id = 'm_not_lfpr_axis2', 
+        new_series = ['m_not_lfpr'],
+        type = 'y');
 		
 		  d3.select('#m_not_lfpr').transition().duration(transitionTime).attr("d", d3.line() //.delay(1000)
         .x(function(d) { return xx(d['date']); })
@@ -241,26 +256,44 @@ d3.csv("employment.csv", function(error, data) {
           .style("opacity", 0)
      	    .transition()
           .duration(transitionTime).style("opacity", 1)
-          .attr("d", area);
+          .attr("d", area)
+          .attr('id','recession_area');
     };
     if (count == 5){
+
+      change_slide_title('In particular, we this trend varies significantly by education level.');
     	// split_line(initial_line_ids, list_of_new_lines)
-    	draw_lines(data2, 
-    		'year', 
-    		['lessHS','HS','some_college','AD','BD'],
-    		xscale = xx, 
-    		yscale = yy,
-    		['green','blue','green','blue','red'], 
-    		['a','b','c','d','e'])
-    	fadeAxis(data2, 
-    		yy, 
-    		old_axis_id = 'm_not_lfpr_axis2', 
-    		new_axis_id = 'lessHS', 
-    		new_series = ['lessHS','HS','some_college','AD','BD']);
+      fade_object('#m_not_lfpr'); 
+      fade_object('#recession_area'); 
+      fade_object('#men_text'); 
+
+      replace_axis(data2, 
+        scale = xx, 
+        old_axis_id = 'xaxis', 
+        new_axis_id = 'year', 
+        new_series = ['year'],
+        type='x');
+
+      replace_axis(data2, 
+        scale = yy, 
+        old_axis_id = 'm_not_lfpr_axis2', 
+        new_axis_id = 'lessHS', 
+        new_series = ['lessHS','HS','some_college','AD','BD'],
+        type='y');
+
+    	draw_lines(data = data2, 
+    		x = 'year', 
+    		y = ['lessHS','HS','some_college','AD','BD'],
+    		xscale_type = 'time', 
+    		yscale_type = 'linear',
+    		color = ['#ff0000','#ff1a75','#ff8c1a','#00cc00',' #336600'], 
+    		line_ids = ['a','b','c','d','e'])
+
+    	
     };
   };
 
-  draw_lines(data, 'date', ['unrate'], xx, yy, ['steelblue'], ['emp_line']); 
+  draw_lines(data, 'date', ['unrate'], xscale_type = 'time', yscale_type = 'linear', ['steelblue'], ['emp_line']); 
 
   var count = 0;
 
