@@ -287,9 +287,14 @@ d3.csv("employment.csv", function(error, data) {
     		xscale_type = 'time', 
     		yscale_type = 'linear',
     		color = ['#ff0000','#ff1a75','#ff8c1a','#00cc00',' #336600'], 
-    		line_ids = ['a','b','c','d','e'])
+    		line_ids = ['lessHS','HS','some_college','AD','BD'])
 
-    	
+    	label_line(data2, 'lessHS', yy, 'lessHS', 'lessHS', 'green');       
+      label_line(data2, 'HS', yy, 'HS', 'HS', 'green');       
+      label_line(data2, 'some_college', yy, 'some_college', 'some_college', 'green');       
+      label_line(data2, 'AD', yy, 'AD', 'AD', 'green');       
+      label_line(data2, 'BD', yy, 'BD', 'BD', 'green');       
+
     };
   };
 
