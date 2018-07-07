@@ -15,6 +15,23 @@ Overall page layout
 }
 
 /* Center row divs (eg for title, controls, map...)*/
+#chart_and_controls {
+  /* Create flexbox to git row_div content into CSS grid row as needed*/
+  display: flex;
+  /* Content runs left to right*/
+  flex-direction: row;  
+  /* Conent centered left to right*/
+  justify-content: center; 
+  /* Content centered top to bottom*/
+  align-items: center;
+
+  /* Run entire width of screen*/
+  grid-column-start: 1;
+  grid-column-end: -1;
+}
+
+
+/* Center row divs (eg for title, controls, map...)*/
 .row_divs {
   /* Create flexbox to git row_div content into CSS grid row as needed*/
   display: flex;

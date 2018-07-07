@@ -141,10 +141,11 @@ how_far_below_min_for_y_scale = .1 // We don't want y axis to start
 
 // Add left arrow. By appending this before the chart
 // svg, it automatically goes to the left.
-var leftarrow = grid.append("div").attr("id", "leftarrow");
+var chart_and_controls = grid.append("div").attr('id','chart_and_controls');
+var leftarrow = chart_and_controls.append("div").attr("id", "leftarrow");
 
 // SVG element contains our main chart.
-var svg = grid.append("div").append("svg")
+var svg = chart_and_controls.append("div").append("svg")
   .attr('id', 'emp_chart')
   .attr("width", width + margin.left + margin.right)
   .attr("height", height + margin.top + margin.bottom)
@@ -277,7 +278,7 @@ d3.csv("employment.csv", function(error, data) {
       };
     });
 
-  var arrow = grid
+  var arrow = chart_and_controls
     .append("div")
     .attr("id", "arrow")
     .on("click", function() {
