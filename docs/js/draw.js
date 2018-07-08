@@ -129,12 +129,19 @@
     // Call axes_labels function to add labels.
     axes_labels(xAxis,yAxis,'Date', 'Percent (%)');
   }
-  function fade_object(line_id) {
+  function fade_out_object(obj_id) {
   // Fade out.
   // https://groups.google.com/forum/#!msg/d3-js/nkIpeZ60Sas/RZEIhmrsI0cJ
-    d3.select(line_id) //#emp_line
+    d3.select(obj_id) //#emp_line
      .style("opacity", 1)
      .transition().duration(transitionTime).style("opacity", 0);
+  };
+  function fade_in_object(id) {
+  // Fade out.
+  // https://groups.google.com/forum/#!msg/d3-js/nkIpeZ60Sas/RZEIhmrsI0cJ
+    d3.select(id) //#emp_line
+     .style("opacity", 0)
+     .transition().duration(transitionTime).style("opacity", 1);
   };
   function replace_axis(data, scale, old_axis_id, new_axis_id, new_series, type){
     if (type == 'y'){
@@ -146,9 +153,7 @@
         max = Math.pow(-10, 1001) // Big negative number as initial max.
         for (i = 0; i < new_series.length; i++){
           mi = d3.min(data, function(d) { return d[new_series[i]]; })
-          console.log(i, mi)
           ma = d3.max(data, function(d) { return d[new_series[i]]; })
-          console.log(i, ma)
           if (mi<min){
             min = mi;
           }
@@ -156,7 +161,6 @@
             max = ma;
           }
         }
-        console.log(min, max)
         scale.domain([min, max])
       }
       else {

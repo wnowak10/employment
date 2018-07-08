@@ -3,7 +3,7 @@
 <!-- http://bl.ocks.org/phoebebright/3131368 -->
 <!-- onclick: https://stackoverflow.com/questions/46713258/detecting-keypress-in-d3-js -->
 
-<!-- A general note -- this script uses d3.js v4. Cv3 and v4
+<!-- A general note -- this script uses d3.js v4. v3 and v4
 are often not compatabile, unfortunately, so if encountering
 unexpected errors...check this. -->
 
@@ -13,10 +13,6 @@ unexpected errors...check this. -->
 <!-- I personally do not like our current font choice. To edit? -->
 <link rel="stylesheet" type="text/css" href="map.css">
 <style type="text/css">
-	/*
-Overlays
-*/
-
 
 /* Size and style and positioning of overlay box*/
 .modal {
@@ -51,7 +47,6 @@ Overlays
 #leftarrow {
   display: flex;
   margin-top: auto;
-  /*margin-left: auto;*/
 }
 
 #arrow {
@@ -72,14 +67,13 @@ Overlays
 </style>
 </head>
 
-<!-- <script src="https://d3js.org/d3.v3.min.js"></script>  -->
 <script src="https://d3js.org/d3.v4.min.js"></script> 
 <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script> 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
-<script src="https://d3js.org/topojson.v2.min.js"></script>
+<!-- <script src="https://d3js.org/topojson.v2.min.js"></script> -->
 <script src="https://d3js.org/d3-axis.v1.min.js"></script>
-<script src="https://d3js.org/d3-drag.v1.min.js"></script>
-<script src="https://cdn.rawgit.com/vast-engineering/jquery-popup-overlay/1.7.13/jquery.popupoverlay.js"></script>
+<!-- <script src="https://d3js.org/d3-drag.v1.min.js"></script> -->
+<!-- <script src="https://cdn.rawgit.com/vast-engineering/jquery-popup-overlay/1.7.13/jquery.popupoverlay.js"></script> -->
 <script src="js/keybinding.js"></script>
 <script src="js/draw.js"></script>
 <body onclick="off()" onresize="off()">
@@ -191,14 +185,14 @@ d3.csv("employment.csv", function(error, data) {
   function story(){
     if (count == 0 ) {
       change_slide_title('The unemployment rate has recovered since the financial crisis.');
-      fade_object('lfpr_line');
+      fade_out_object('lfpr_line');
       draw_lines(data, 'date', ['unrate'], ['steelblue'], 'time', yscale_type = 'linear', ['emp_line']); 
     };
     if (count == 1 ) {
       change_slide_title('This story is incomplete, however.');
     };
     if (count == 2 ) {
-      fade_object('#emp_line');
+      fade_out_object('#emp_line');
       replace_axis(data, yy, 
         old_axis_id = 'unemployment_axis', 
         new_axis_id = 'lfpr_axis', 
@@ -222,7 +216,7 @@ d3.csv("employment.csv", function(error, data) {
     };
     if (count == 4) {
     	// Fade and remove women
-    	fade_object('#w_not_lfpr'); // This doesn't fade properly?
+    	fade_out_object('#w_not_lfpr'); // This doesn't fade properly?
     	d3.select('#women_text').remove();
     	d3.select('#w_not_lfpr').remove();
     	replace_axis(data, 
@@ -262,9 +256,9 @@ d3.csv("employment.csv", function(error, data) {
 
       change_slide_title('In particular, we this trend varies significantly by education level.');
     	// split_line(initial_line_ids, list_of_new_lines)
-      fade_object('#m_not_lfpr'); 
-      fade_object('#recession_area'); 
-      fade_object('#men_text'); 
+      fade_out_object('#m_not_lfpr'); 
+      fade_out_object('#recession_area'); 
+      fade_out_object('#men_text'); 
 
       replace_axis(data2, 
         scale = xx, 
@@ -295,6 +289,15 @@ d3.csv("employment.csv", function(error, data) {
     		label_line(data2, new_linez[i], yy, namez[i], namez[i], colorz[i]); 
     	}      
     };
+    if (count == 6) {
+    	fade_out_object('body');
+    }
+    if (count == 7) {
+    	d3.select('#chart_and_controls').remove();
+    	d3.select('#overlay').remove(); 
+    	fade_in_object('body');
+    	change_slide_title('So why is this happening?'); // Why not centered?
+    }
   };
 
   // Draw initial lines.
