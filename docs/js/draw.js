@@ -7,8 +7,12 @@
 
     // Range (extent) of dates (or x values)
     if (xscale_type == 'time'){
-		var xscale = d3.scaleTime().range([0, width]);
+		  var xscale = d3.scaleTime().range([0, width]);
 	    xscale.domain(d3.extent(data, function(d) { return d[x]; }));
+    };
+    if (xscale_type == 'linear'){
+      var xscale = d3.scaleLinear().range([0, width]);
+      xscale.domain(d3.extent(data, function(d) { return d[x]; }));
     };
 
     if (yscale_type == 'linear'){
@@ -43,6 +47,7 @@
 	      .datum(data)
 	      .attr("fill", "none")
 	      .attr("id", line_ids[i])
+        .attr('class','line')
 	      .attr("stroke", color[i])
 	      .attr("stroke-linejoin", "round")
 	      .attr("stroke-linecap", "round")
@@ -77,7 +82,7 @@
       .delay(transitionTime)
       .attr("d", d3.line()
             .x(function(d, e, f, g, h, i, j, k) { 
-              console.log(f) // Where does d, e, f, come from???
+              // console.log(f) // Where does d, e, f, come from???
               return xscale(d[x]); })
             .y(function(d) { return yscale(d[list_of_new_lines[i]]); }))
       .attr('stroke', colors[i])
@@ -110,7 +115,7 @@
 
     // Add initial axes.
 
-  function addInitialAxes(xx, yy, data, x_axis_series, y_axis_series){
+  function addInitialAxes(xx, yy, data, x_axis_series, y_axis_series, xaxis_label, y_axis_label){
   	// This draws axes initially.
 
     xx.domain(d3.extent(data, function(d) { return d[x_axis_series]; }));
@@ -127,12 +132,12 @@
       .attr('id','xaxis')
       .call(d3.axisBottom(xx).ticks(10).tickFormat(d3.timeFormat("%Y")));
     // Call axes_labels function to add labels.
-    axes_labels(xAxis,yAxis,'Date', 'Percent (%)');
+    axes_labels(xAxis,yAxis,xaxis_label, y_axis_label); //'Date', 'Percent (%)'
   }
   function fade_out_object(obj_id) {
   // Fade out.
   // https://groups.google.com/forum/#!msg/d3-js/nkIpeZ60Sas/RZEIhmrsI0cJ
-    d3.select(obj_id) //#emp_line
+    d3.selectAll(obj_id) //#emp_line
      .style("opacity", 1)
      .transition().duration(transitionTime).style("opacity", 0);
   };

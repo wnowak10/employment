@@ -75,6 +75,9 @@ unexpected errors...check this. -->
 <!-- <script src="https://d3js.org/d3-drag.v1.min.js"></script> -->
 <!-- <script src="https://cdn.rawgit.com/vast-engineering/jquery-popup-overlay/1.7.13/jquery.popupoverlay.js"></script> -->
 <script src="js/keybinding.js"></script>
+<!-- <script src="xkcdgraphs/xkcd.js"></script> -->
+<!-- <script src="xkcdgraphs/parser.js"></script> -->
+
 <script src="js/draw.js"></script>
 <body onclick="off()" onresize="off()">
 
@@ -151,6 +154,7 @@ var svg = chart_and_controls.append("div").append("svg")
 // Import the data.
 d3.csv("employment.csv", function(error, data) {
 	d3.csv("lf_education.csv", function(error2, data2) {
+    d3.csv("labor.csv", function(error2, data3) {
 		// lf demographic data by education from
 		// https://www.bls.gov/opub/mlr/2016/article/pdf/labor-force-participation-what-has-happened-since-the-peak.pdf
   		if (error) throw error;
@@ -179,7 +183,14 @@ d3.csv("employment.csv", function(error, data) {
     d.BD = +d.BD_adj/100;
   });
 
-  addInitialAxes(xx, yy, data, 'date', 'unrate');
+  data3.forEach(function(d) {
+    d.supply = +d.supply;
+    d.demand = +d.demand;
+    d.hours = +d.hours;
+    console.log(d)
+  });
+
+  addInitialAxes(xx, yy, data, 'date', 'unrate','Date', 'Percent (%)');
 
 // On right arrow key, progress thru story. 
   function story(){
@@ -286,18 +297,44 @@ d3.csv("employment.csv", function(error, data) {
     	new_linez = ['lessHS','HS','some_college','AD','BD']
     	namez = ['Less HS','HS','Some College','Associate\'s Degree','Bachelor\'s Degree']
     	for (i = 0; i < new_linez.length; i++) { 
-    		label_line(data2, new_linez[i], yy, namez[i], namez[i], colorz[i]); 
+    		label_line(data2, new_linez[i], yy, new_linez[i], namez[i], colorz[i]); 
     	}      
     };
     if (count == 6) {
-    	fade_out_object('body');
-    }
+      idz = ['lessHS','HS','some_college','AD','BD']
+      for (i = 0; i < idz.length; i++) { 
+        fade_out_object('#'+idz[i]);
+      }
+      fade_out_object('#year');
+      fade_out_object('#lessHS');
+      change_slide_title('So why is this happening?'); // Why not centered?
+      // namez = ['Less HS','HS','Some College','Associate\'s Degree','Bachelor\'s Degree']
+      // for (i = 0; i < namez.length; i++) { 
+      //   fade_out_object('#'+namez[i]);
+      // }
+      // d3.select('#Some College').remove();
+    	// fade_out_object('body');
+    };
     if (count == 7) {
-    	d3.select('#chart_and_controls').remove();
-    	d3.select('#overlay').remove(); 
-    	fade_in_object('body');
-    	change_slide_title('So why is this happening?'); // Why not centered?
-    }
+    // 	// d3.select('#chart_and_controls').remove();
+    // 	// d3.select('#overlay').remove(); 
+    	
+    // 	change_slide_title('So why is this happening?'); // Why not centered?
+      
+    //   // addInitialAxes(xx, yy, data, 'date', 'unrate');
+    //   // draw_lines(data, 'date', ['unrate'], ['steelblue'], 'time', yscale_type = 'linear', ['emp_line']); 
+
+      var linearXscale = d3.scaleLinear().range([0, width]);
+      addInitialAxes(linearXscale, yy, data3, 'hours', 'wage', 'Hours worked', 'Wages');
+    //   // draw_lines(data = data3, 
+    //   //   x = 'hours', 
+    //   //   y = ['demand','supply'],
+    //   //   xscale_type = 'linear', 
+    //   //   yscale_type = 'linear',
+    //   //   color = ['#ff0000','green'], 
+    //   //   line_ids = ['demand','supply'])
+      
+    };
   };
 
   // Draw initial lines.
@@ -333,6 +370,7 @@ d3.csv("employment.csv", function(error, data) {
   }); // Add story functionalities to left arrow (which we already made above.
 
 // Close d3.csv.
+});
 });
 });
 
