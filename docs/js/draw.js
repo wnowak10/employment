@@ -63,7 +63,7 @@
 
   };
 
-  function split_line(initial_line_ids, list_of_new_lines, xscale, yscale){
+  function split_line(data, x, initial_line_ids, list_of_new_lines, xscale, yscale){
   	// If you want to split one line, you need to make
   	// TWO overlapping lines with different ids. We then 
   	// select each and move it to a new line.
@@ -76,7 +76,9 @@
       .duration(transitionTime)
       .delay(transitionTime)
       .attr("d", d3.line()
-            .x(function(d) { return xscale(d['date']); })
+            .x(function(d, e, f, g, h, i, j, k) { 
+              console.log(f) // Where does d, e, f, come from???
+              return xscale(d[x]); })
             .y(function(d) { return yscale(d[list_of_new_lines[i]]); }))
       .attr('stroke', colors[i])
       .attr('id', list_of_new_lines[i]);
@@ -140,15 +142,22 @@
       // If we are fading an old axis and adding multiple new lines,
       // we find the minimum and maximum of all these values and then set the 
       // axis appropriately to fit everything.
-
-      // Should replace this with a for loop for element [i]
-      min_of_series_0 = d3.min(data, function(d) { return d[new_series[0]]; })
-      min_of_series_1 = d3.min(data, function(d) { return d[new_series[1]]; })
-      max_of_series_0 = d3.max(data, function(d) { return d[new_series[0]]; })
-      max_of_series_1 = d3.max(data, function(d) { return d[new_series[1]]; })
-      min = Math.min(min_of_series_0, min_of_series_1)
-      max = Math.max(max_of_series_0, max_of_series_1)
-      scale.domain([min, max])
+        min = Math.pow(10, 1000) // Big positive number as initial min. 
+        max = Math.pow(-10, 1001) // Big negative number as initial max.
+        for (i = 0; i < new_series.length; i++){
+          mi = d3.min(data, function(d) { return d[new_series[i]]; })
+          console.log(i, mi)
+          ma = d3.max(data, function(d) { return d[new_series[i]]; })
+          console.log(i, ma)
+          if (mi<min){
+            min = mi;
+          }
+          if (ma>max){
+            max = ma;
+          }
+        }
+        console.log(min, max)
+        scale.domain([min, max])
       }
       else {
         scale.domain( [d3.min(data, function(d) { return d[new_series]; }) 

@@ -178,7 +178,6 @@ d3.csv("employment.csv", function(error, data) {
 
   data2.forEach(function(d) {
     d.year = parseYear(d.year);
-    console.log(d.year)
     d.lessHS = +d.lessHS_adj/100;
     d.HS = +d.HS_adj/100;
     d.some_college = +d.some_college_adj/100;
@@ -216,7 +215,7 @@ d3.csv("employment.csv", function(error, data) {
         new_axis_id = 'm_not_lfpr_axis', 
         new_series = ['m_not_lfpr','w_not_lfpr'],
         type='y');
-      split_line(['lfpr_line', 'lfpr_line2'], ['m_not_lfpr', 'w_not_lfpr'], xx, yy);
+      split_line(data, 'date', ['lfpr_line', 'lfpr_line2'], ['m_not_lfpr', 'w_not_lfpr'], xx, yy);
       change_slide_title('In particular, this rise has been steeper for men.');
       label_line(data, 'w_not_lfpr', yy, 'women_text', 'Women', 'green');	     
       label_line(data, 'm_not_lfpr', yy, 'men_text', 'Men', 'LightCoral');
@@ -237,17 +236,17 @@ d3.csv("employment.csv", function(error, data) {
         .x(function(d) { return xx(d['date']); })
         .y(function(d) { return yy(d['m_not_lfpr']); }))
 
-      change_slide_title('Even after the recession\'s end, this rise has not stopped.');
+        change_slide_title('Even after the recession\'s end, this rise has not stopped.');
 
-      var recessionStart = new Date('February 1, 2008');
-      var recessionEnd = new Date('February 1, 2010');
+        var recessionStart = new Date('February 1, 2008');
+        var recessionEnd = new Date('February 1, 2010');
 
-      var area = d3.area()
+        var area = d3.area()
           .x(function(d){ return xx(d.date); })
           .y0(function(d) { return yy(d['m_not_lfpr']); })
           .y1(height);
 
-      svg.append("path")
+        svg.append("path")
           .datum(data.filter(function(d){return recessionStart < d['date'] && d['date'] < recessionEnd;}))
           .attr("fill", "LightCoral")
           .attr("stroke-linejoin", "round")
@@ -289,15 +288,16 @@ d3.csv("employment.csv", function(error, data) {
     		color = ['#ff0000','#ff1a75','#ff8c1a','#00cc00',' #336600'], 
     		line_ids = ['lessHS','HS','some_college','AD','BD'])
 
-    	label_line(data2, 'lessHS', yy, 'lessHS', 'lessHS', 'green');       
-      label_line(data2, 'HS', yy, 'HS', 'HS', 'green');       
-      label_line(data2, 'some_college', yy, 'some_college', 'some_college', 'green');       
-      label_line(data2, 'AD', yy, 'AD', 'AD', 'green');       
-      label_line(data2, 'BD', yy, 'BD', 'BD', 'green');       
-
+    	colorz = ['#ff0000','#ff1a75','#ff8c1a','#00cc00',' #336600']
+    	new_linez = ['lessHS','HS','some_college','AD','BD']
+    	namez = ['Less HS','HS','Some College','Associate\'s Degree','Bachelor\'s Degree']
+    	for (i = 0; i < new_linez.length; i++) { 
+    		label_line(data2, new_linez[i], yy, namez[i], namez[i], colorz[i]); 
+    	}      
     };
   };
 
+  // Draw initial lines.
   draw_lines(data, 'date', ['unrate'], xscale_type = 'time', yscale_type = 'linear', ['steelblue'], ['emp_line']); 
 
   var count = 0;
