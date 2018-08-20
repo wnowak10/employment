@@ -103,11 +103,6 @@ function off() {
 // On click, increment count variable and move through steps of the story, each of which is
 // outlined in its own function?
 
-// Key components
-// Draw line, fade line, change axis. Works well for drawing single lines. 
-// What if we want to get more complicated?
-// Do we want plots with more than one line? How to best visualize? How to implement?
-
 // Set up grid, on which we can place objects.
 var grid = d3.select("body")
   .append("div")
@@ -150,11 +145,12 @@ var svg = chart_and_controls.append("div").append("svg")
   .attr("transform",
         "translate(" + margin.left + "," + margin.top + ")");
 
+// D3 code.
 
 // Import the data.
-d3.csv("employment.csv", function(error, data) {
-	d3.csv("lf_education.csv", function(error2, data2) {
-    d3.csv("labor.csv", function(error2, data3) {
+d3.csv("data/employment.csv", function(error, data) {
+	d3.csv("data/lf_education.csv", function(error2, data2) {
+    d3.csv("data/labor.csv", function(error2, data3) {
 		// lf demographic data by education from
 		// https://www.bls.gov/opub/mlr/2016/article/pdf/labor-force-participation-what-has-happened-since-the-peak.pdf
   		if (error) throw error;
@@ -165,7 +161,6 @@ d3.csv("employment.csv", function(error, data) {
   var xx = d3.scaleTime().range([0, width]);
   var yy = d3.scaleLinear().range([height, 0]);
 
-  // Format the data as time and numeric
   data.forEach(function(d) {
     d.date = parseTime(d.DATE);
     d.unrate = +d.UNRATE/100; // Divide by 100 to format as %.
@@ -316,6 +311,7 @@ d3.csv("employment.csv", function(error, data) {
     	// fade_out_object('body');
     };
     if (count == 7) {
+      
     // 	// d3.select('#chart_and_controls').remove();
     // 	// d3.select('#overlay').remove(); 
     	
@@ -324,8 +320,8 @@ d3.csv("employment.csv", function(error, data) {
     //   // addInitialAxes(xx, yy, data, 'date', 'unrate');
     //   // draw_lines(data, 'date', ['unrate'], ['steelblue'], 'time', yscale_type = 'linear', ['emp_line']); 
 
-      var linearXscale = d3.scaleLinear().range([0, width]);
-      addInitialAxes(linearXscale, yy, data3, 'hours', 'wage', 'Hours worked', 'Wages');
+      // var linearXscale = d3.scaleLinear().range([0, width]);
+      // addInitialAxes(linearXscale, yy, data3, 'hours', 'wage', 'Hours worked', 'Wages');
     //   // draw_lines(data = data3, 
     //   //   x = 'hours', 
     //   //   y = ['demand','supply'],
@@ -351,7 +347,7 @@ d3.csv("employment.csv", function(error, data) {
           story(count);   
       };
       if (d3.event.keyCode == 37) { // left arrow  
-        count -=1; // progress story
+        count -=1; // progress story. TO DO: make story backwards rewindable.
         story(count);   
       };
     });
@@ -369,9 +365,9 @@ d3.csv("employment.csv", function(error, data) {
     story(count);
   }); // Add story functionalities to left arrow (which we already made above.
 
-// Close d3.csv.
-});
-});
+// Close d3.csvs.
+    });
+  });
 });
 
 </script>
